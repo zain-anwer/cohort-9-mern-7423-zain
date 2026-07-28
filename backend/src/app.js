@@ -8,6 +8,7 @@ import noteRoutes from './routes/notes.routes.js'
 import healthRoute from './routes/health.routes.js'
 import logger from './configs/logger.js'
 import pinoHttp from 'pino-http'
+import { errorMiddleware } from './middleware/error.middleware.js'
 
 dotenv.config()
 
@@ -27,10 +28,7 @@ app.use('/api/auth',authRoutes)
 app.use('/api/notes',noteRoutes)
 app.use('/api',healthRoute)
 
-// health endpoint
-app.get('/',(req,res) => {
-    console.log('Log: Health Endpoint Reached')
-    return res.json({'status':'ok'})
-})
+// adding error middleware at the end
+app.use(errorMiddleware)
 
 export default app

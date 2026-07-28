@@ -1,8 +1,7 @@
 export const errorMiddleware = (err,req,res,next) => 
 {
-    
-    // global error handler
-    // handles pino logs and stuff
+    /* GLOBAL ERROR HANDLING */
 
-    next()
+    req.log?.error(err)
+    res.status(err.StatusCode || 500).json({'message' : err.message || 'Internal Server Error'})
 }

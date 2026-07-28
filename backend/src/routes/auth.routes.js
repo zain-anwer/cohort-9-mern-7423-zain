@@ -3,8 +3,10 @@ import { signupController, signinController, logoutController } from '../control
 
 const router = express.Router()
 
-router.get('/signup',signupController)
-router.get('/signin',signinController)
-router.get('/logout',logoutController)
+/* signin and logout post because get appends data directly to url */
+
+router.post('/signup',signupController)
+router.post('/signin',signinController)
+router.post('/logout',logoutController)
 
 export default router

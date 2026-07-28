@@ -1,18 +1,37 @@
- 
-export const signupController = (req,res) =>
+ export const signupController = (req,res,next) =>
 {
-    console.log('signup endpoint reached')
-    return res.json({'Message' : 'Signup Controller Working'})
+    try {
+        console.log('signup endpoint reached')
+        return res.json({'Message' : 'Signup Controller Working'})
+    }
+    catch(err)
+    {
+        next(err)
+    }
 }
 
 export const signinController = (req,res) =>
 {
-    console.log('signin endpoint reached')
-    return res.json({'Message' : 'Signin Controller Working'})
+    try
+    {
+        console.log('signin endpoint reached')
+        return res.json({'Message' : 'Signin Controller Working'})
+    }
+    catch(err)
+    {
+        next(err)
+    }
 }
 
 export const logoutController = (req,res) =>
 {
-    console.log('logout endpoint reached')
-    return res.json({'Message' : 'Logout Controller Working'})
+    try
+    {
+        console.log('logout endpoint reached')
+        return res.json({'Message' : 'Logout Controller Working'})
+    }
+    catch(err)
+    {
+        next(err)
+    }
 }
