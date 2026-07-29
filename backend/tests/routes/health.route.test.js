@@ -1,0 +1,19 @@
+import request from 'supertest'
+import {expect} from 'chai'
+import app from '../../src/app.js'
+
+describe('GET /api/health', () =>
+{
+    it('should return status 200', async ()=> 
+    {
+        const res = await request(app).get('/api/health')
+        expect(res.status).to.equal(200)
+    })
+
+    it('should return JSON object {status: "ok"}',async () => 
+    {
+        const res = await request(app).get('/api/health')
+        expect(res.body).to.deep.equal({status: 'ok'})
+    })
+    
+})
