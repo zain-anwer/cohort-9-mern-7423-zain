@@ -11,9 +11,7 @@ describe('GET /api/health', () =>
             expect(res.status).to.equal(200)
         }
         catch(err)
-        {
-            assert.fail(`Request Failed: ${err.message}`)
-        }
+        { fail(`Request Failed: ${err.message}`) }
     })
 
     it('should return JSON object {status: "ok"}',async () => 
@@ -23,9 +21,7 @@ describe('GET /api/health', () =>
             expect(res.body).to.deep.equal({status: 'ok'})
         }
         catch(err)
-        {
-            assert.fail(`Request Failed: ${err.message}`)
-        }
+        { fail(`Request Failed: ${err.message}`) }
     })
     
 })

@@ -8,7 +8,7 @@ import { createNoteController,
 const router = express.Router()
 
 /* all note routes must use authentication -- should have jwt token */
-router.user(authMiddleware)
+router.use(authMiddleware)
 
 router.post('/',createNoteController)
 router.get('/:id',getNoteController)
