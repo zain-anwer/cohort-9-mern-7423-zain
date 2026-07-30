@@ -8,10 +8,10 @@ const authMiddleware = (req,res,next) => {
 
     authHeader = req.headers.authorization
     if (!authHeader)
-        next(new AppError('Authorization Header Missing',401))
+        return next(new AppError('Authorization Header Missing',401))
 
     /* req['headers']['authorization'] = 'Bearer <TOKEN>' */
-    token = authHeader.split(' ')[0]
+    token = authHeader.split(' ')[1]
 
     payload = jwt.verify(token,process.env.JWT_SECRET)
 
@@ -20,6 +20,8 @@ const authMiddleware = (req,res,next) => {
     
     /* append the user id to req object after extraction for controller level verification */
     req.user.id = payload.userId 
+
+    next()
 }
 
 export default authMiddleware
