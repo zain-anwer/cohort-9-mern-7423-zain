@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 dotenv.config()
 
-export const authMiddleware = (req,res,next) => {
+const authMiddleware = (req,res,next) => {
     
     /* authenticates protected APIs by checking token in auth header */
 
@@ -21,3 +21,5 @@ export const authMiddleware = (req,res,next) => {
     /* append the user id to req object after extraction for controller level verification */
     req.user.id = payload.userId 
 }
+
+export default authMiddleware

@@ -11,7 +11,10 @@ const usersSchema = new mongoose.Schema(
         {
             type: String,
             required: true,
-            unique: true
+            unique: true,
+            lowercase: true,
+            trim: true,
+            match: /^\S+@\S+\.\S+$/
         },
         password:
         {

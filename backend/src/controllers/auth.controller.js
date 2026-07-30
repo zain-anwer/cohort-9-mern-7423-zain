@@ -1,4 +1,4 @@
- export const signupController = (req,res,next) =>
+export const signupController = (req,res,next) =>
 {
     try {
         console.log('signup endpoint reached')
@@ -10,7 +10,7 @@
     }
 }
 
-export const signinController = (req,res) =>
+export const signinController = (req,res,next) =>
 {
     try
     {
@@ -23,7 +23,7 @@ export const signinController = (req,res) =>
     }
 }
 
-export const logoutController = (req,res) =>
+export const logoutController = (req,res,next) =>
 {
     try
     {

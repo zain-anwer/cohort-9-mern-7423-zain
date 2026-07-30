@@ -1,4 +1,4 @@
-export const createNoteController = (req,res) =>
+export const createNoteController = (req,res,next) =>
 {
     try
     {
@@ -11,7 +11,7 @@ export const createNoteController = (req,res) =>
     }
 }
 
-export const updateNoteController = (req,res) =>
+export const updateNoteController = (req,res,next) =>
 {
     try
     {
@@ -24,7 +24,7 @@ export const updateNoteController = (req,res) =>
     }
 }
 
-export const deleteNoteController = (req,res) =>
+export const deleteNoteController = (req,res,next) =>
 {
     try
     {
@@ -37,7 +37,7 @@ export const deleteNoteController = (req,res) =>
     }
 }
 
-export const getNoteController = (req,res) => 
+export const getNoteController = (req,res,next) => 
 {
     try
     {
@@ -50,7 +50,7 @@ export const getNoteController = (req,res) =>
     }
 }
 
-export const getAllNotesController = (req,res) => 
+export const getAllNotesController = (req,res,next) => 
 {
     try
     {

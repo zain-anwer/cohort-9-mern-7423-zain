@@ -13,6 +13,8 @@ const connectDB = async() =>
     catch(err)
     {
         console.log('Error: ',err)
+        /* propagate error so frontend displays it */
+        throw err  
     }
 }
 

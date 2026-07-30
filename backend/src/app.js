@@ -2,18 +2,12 @@
 
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import authRoutes from './routes/auth.routes.js'
 import noteRoutes from './routes/notes.routes.js'
 import healthRoute from './routes/health.routes.js'
 import logger from './configs/logger.js'
 import pinoHttp from 'pino-http'
 import { errorMiddleware } from './middleware/error.middleware.js'
-
-dotenv.config()
-
-// extracting env variables
-const PORT = process.env.PORT
 
 // creating an express app
 const app = express()
