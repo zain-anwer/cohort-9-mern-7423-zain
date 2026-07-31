@@ -1,0 +1,12 @@
+# environment variable files
+.env
+.env.*
+
+# unignoring example environment variable file
+!.env.example
+
+# packages
+node_modules/
+
+# any files for notes and to dos and all
+*.txt

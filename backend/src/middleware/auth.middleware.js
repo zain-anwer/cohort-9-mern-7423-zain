@@ -1,0 +1,27 @@
+import dotenv from 'dotenv'
+import jwt from 'jsonwebtoken'
+dotenv.config()
+
+const authMiddleware = (req,res,next) => {
+    
+    /* authenticates protected APIs by checking token in auth header */
+
+    authHeader = req.headers.authorization
+    if (!authHeader)
+        return next(new AppError('Authorization Header Missing',401))
+
+    /* req['headers']['authorization'] = 'Bearer <TOKEN>' */
+    token = authHeader.split(' ')[1]
+
+    payload = jwt.verify(token,process.env.JWT_SECRET)
+
+    if (!payload)
+        next(new AppError('Invalid or Expired Token',401))
+    
+    /* append the user id to req object after extraction for controller level verification */
+    req.user.id = payload.userId 
+
+    next()
+}
+
+export default authMiddleware
