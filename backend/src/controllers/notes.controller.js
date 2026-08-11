@@ -5,7 +5,7 @@ export const createNoteController = (req,res,next) =>
         console.log('note creation endpoint reached')
         return res.json({'Message' : 'Note Creation Controller Working'})
     }
-    catch(err)
+    catch(err) 
     {
         next(err)
     }
