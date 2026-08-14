@@ -38,14 +38,15 @@ const deleteNoteService = async (note_id,user_id) => {
     const deleted_note = await notesModel.findOneAndDelete({_id: note_id, user_id: user_id})
 
     if (deleted_note)
-        console.log('Deletion Successful')
-    else
     {
-        console.log('Record Not Found')
-        const err = new Error('Record Not Found')
-        err.statusCode = 404
-        throw err
+        console.log('Deletion Successful')
+        return deleted_note
     }
+    
+    console.log('Record Not Found')
+    const err = new Error('Record Not Found')
+    err.statusCode = 404
+    throw err
 }
 
 const getNoteService = async (note_id,user_id) => {
