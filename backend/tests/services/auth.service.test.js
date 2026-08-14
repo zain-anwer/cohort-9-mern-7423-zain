@@ -1,254 +1,272 @@
-// import {logoutController, signinController, signupController} from '../../src/controllers/auth.controller.js'
-// import usersModel from '../../src/models/users.model.js'
-// import {expect} from 'chai'
-// import jwt from 'jsonwebtoken'
-// import bcrypt from 'bcrypt'
-// import sinon from 'sinon'
+import authService from '../../src/services/auth.service.js'
+import usersModel from '../../src/models/users.model.js'
+import {expect} from 'chai'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import sinon from 'sinon'
 
-// describe('Signup Controller',() => {
+describe('Signup Service',() => {
 
-//     afterEach(() => {
-//         sinon.restore()
-//     })
+    afterEach(() => {
+        sinon.restore()
+    })
 
-//     it('should successfully create a user and return an access token', async () => {
+    it('should successfully create a user and return an access token', async () => {
         
-//         const fakeUser = {
-//             name     : 'Umair Raza',
-//             email    : 'umair.raza@gmail.com',
-//             password : '123456'
-//         }
+        const name     = 'Umair Raza'
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'  
 
-//         const fakeCreationResult = {
-//             _id: '507f1f77bcf86cd799439011',
-//             ...fakeUser,
-//             createdAt: new Date(),
-//             updatedAt: new Date()
-//         }
-    
-//         /* dummy request, response, and next */
+        const fakeCreationResult = {
+            _id: '507f1f77bcf86cd799439011',
+            name: name,
+            email: email,
+            password: password,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }
 
-//         const req = {
-//             body: fakeUser
-//         }
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        sinon.stub(usersModel,'create').resolves(fakeCreationResult)
+        sinon.stub(usersModel,'findOne').resolves(null)
+        sinon.stub(jwt,'sign').returns('this.is.a.dummy.access.token')
+        sinon.stub(bcrypt,'hash').resolves('this.is.a.dummy.hash')        
 
-//         const res = {
-//             /* status returns the response object itself so json() can be chained */
-//             status: sinon.stub().returnsThis(),
-//             json: sinon.stub()
-//         }
+        /* calling service method with dummy data */
+        const access_token = await authService.signupService(name,email,password)
 
-//         const next = sinon.spy()
+        /* assertions */
+        expect(access_token).to.equal('this.is.a.dummy.access.token')
+    })
 
-//         /* replacing dependency methods with stubbed methods */
-//         /* resolves is used for asynchronous methods and returns is used for synchronous ones */
-//         sinon.stub(usersModel,'create').resolves(fakeCreationResult)
-//         sinon.stub(usersModel,'findOne').resolves(null)
-//         sinon.stub(jwt,'sign').returns('this.is.a.dummy.access.token')
-//         sinon.stub(bcrypt,'hash').resolves('this.is.a.dummy.hash')        
-
-//         /* calling controller method with dummy data */
-//         await signupController(req,res,next)
-
-//         /* assertions */
-//         expect(res.status.calledWith(201)).to.be.true
-//         expect(res.json.calledWith(sinon.match({
-//             status: 'SignUp Successful',
-//             access_token: sinon.match.string
-//         }))).to.be.true
-//         expect(next.called).to.be.false
-//     })
-
-//     it('should reject signup on email duplication and return a meaningful error', async () => {
+    it('should reject signup if fields are missing and return a meaningful error', async () => {
         
-//         const fakeUser = {
-//             name     : 'Umair Raza',
-//             email    : 'umair.raza@gmail.com',
-//             password : '123456'
-//         }
+        const name     = ''
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'
 
-//         const existingUser = {
-//             _id: '507f1f77bcf86cd799439011',
-//             ...fakeUser,
-//             createdAt: new Date(),
-//             updatedAt: new Date()
-//         }
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        const db_call = sinon.stub(usersModel,'findOne')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+        const hash_stub = sinon.stub(bcrypt,'hash')      
+
+        /* error result */
+        var thrownError = null
+
+        /* calling signup service with dummy data */
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        /* assertions */
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('All Fields Required')
+        expect(db_call.called).to.be.false
+        expect(hash_stub.called).to.be.false                                // to check whether thrown error terminated workflow
+        expect(token_generation_stub.called).to.be.false
+    })
+
+    it('should reject signup if password length is less than 8 and return a meaningful error', async () => {
+        
+        const name     = 'Umair Raza'
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345'
+
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        const db_call = sinon.stub(usersModel,'findOne')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+        const hash_stub = sinon.stub(bcrypt,'hash')      
+
+        /* error result */
+        var thrownError = null
+
+        /* calling signup service with dummy data */
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        /* assertions */
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('Password should be at least 8 characters long')
+        expect(hash_stub.called).to.be.false                              
+        expect(token_generation_stub.called).to.be.false
+        expect(db_call.called).to.be.false
+    })
     
-//         /* dummy request, response, and next */
+    it('should reject signup on email pattern mismatch and return a meaningful error', async () => {
+        
+        const name     = 'Umair Raza'
+        const email    = 'umair.razagmail.com'
+        const password = '12345678'
 
-//         const req = {
-//             body: fakeUser
-//         }
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        const db_call = sinon.stub(usersModel,'findOne')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+        const hash_stub = sinon.stub(bcrypt,'hash')      
 
-//         const res = {
-//             status: sinon.stub().returnsThis(),
-//             json: sinon.stub()
-//         }
+        /* error result */
+        var thrownError = null
 
-//         const next = sinon.spy()
+        /* calling signup service with dummy data */
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
 
-//         /* replacing dependency methods with stubbed methods */
-//         /* resolves is used for asynchronous methods and returns is used for synchronous ones */
-//         sinon.stub(usersModel,'findOne').resolves(existingUser)
-//         const hash_stub = sinon.stub(bcrypt,'hash')      
+        /* assertions */
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('Invalid Email Pattern')
+        expect(hash_stub.called).to.be.false                                // to check whether thrown error terminated workflow
+        expect(token_generation_stub.called).to.be.false
+        expect(db_call.called).to.be.false
+    })
 
-//         /* calling controller method with dummy data */
-//         await signupController(req,res,next)
+    it('should reject signup on email duplication and return a meaningful error', async () => {
+        
+        const name     = 'Umair Raza'
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'
+        
+        const existingUser = {
+            _id: '507f1f77bcf86cd799439011',
+            name: name,
+            email: email,
+            password: 'this.is.a.dummy.hash',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }
 
-//         /* assertions */
-//         expect(next.calledOnce).to.be.true
-//         expect(next.firstCall.args[0].statusCode).to.equal(409)
-//         expect(next.firstCall.args[0].message).to.equal('Email Already Exists')
-//         expect(hash_stub.called).to.be.false  // to check whether middleware call terminated workflow
-//     })
 
-// })
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        sinon.stub(usersModel,'findOne').resolves(existingUser)
+        const token_generation_stub = sinon.stub(jwt,'sign')
+        const hash_stub = sinon.stub(bcrypt,'hash')      
 
-// describe('Signin Controller',() => {
+        /* error result */
+        var thrownError = null
+
+        /* calling signup service with dummy data */
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        /* assertions */
+        expect(thrownError.statusCode).to.equal(409)
+        expect(thrownError.message).to.equal('Email Already Exists')
+        expect(hash_stub.called).to.be.false                                // to check whether thrown error terminated workflow
+        expect(token_generation_stub.called).to.be.false
+    })
+
+})
+
+describe('Signin Service',() => {
     
-//     afterEach(() => {
-//         sinon.restore()
-//     })
+    afterEach(() => {
+        sinon.restore()
+    })
 
-//     it('should successfully sign in existing users and return an access token', async () => {
+    it('should successfully sign in existing users and return an access token', async () => {
 
-//         /* mock request and response objects */
+        /* mocking service parameters */
+        
+        const email = 'umair.raza@gmail.com'
+        const password = '12345678'          
 
-//         const fakeUser = {
-//             email     : 'umair.raza@gmail.com',
-//             password  : '123456'          
-//         }
+        const userFound = {
+            _id : '507f1f77bcf86cd799439011',
+            name: 'Umair Raza',
+            email: 'umair.raza@gmail.com',
+            password: '12345678', 
+            createdAt : new Date(),
+            updatedAt : new Date()
+        }
 
-//         const req = {
-//             body : fakeUser
-//         }
-
-//         const res = {
-//             status : sinon.stub().returnsThis(),
-//             json   : sinon.stub()
-//         }
-
-//         const userFound = {
-//             _id : '507f1f77bcf86cd799439011',
-//             ...fakeUser,
-//             createdAt : new Date(),
-//             updatedAt : new Date()
-//         }
-
-//         /* stubbing mongoose and dependency methods */
-//         sinon.stub(usersModel,'findOne').resolves(userFound)
-//         sinon.stub(jwt,'sign').returns('this.is.a.dummy.access.token')
-//         sinon.stub(bcrypt,'compare').resolves(true)
-
-//         /* stubbing error middleware */
-//         const next = sinon.spy()
-
-//         await signinController(req,res,next)
-
-//         expect(res.status.calledWith(200)).to.be.true
-//         expect(res.json.calledWith(sinon.match({
-//             status: 'Signin Successful',
-//             access_token: sinon.match.string
-//         }))).to.be.true
-//         expect(next.called).to.be.false
-//     })
+        /* stubbing mongoose and dependency methods */
+        sinon.stub(usersModel,'findOne').resolves(userFound)
+        sinon.stub(jwt,'sign').returns('this.is.a.dummy.access.token')
+        sinon.stub(bcrypt,'compare').resolves(true)
+        
+        const access_token = await authService.signinService(email,password)
+        
+        expect(access_token).to.equal('this.is.a.dummy.access.token')
+    })
     
-//     it('should provide meaningful error message if user email is invalid or not found', async () => {
+    it('should provide meaningful error message if user email is invalid or not found', async () => {
 
-//         /* mock request and response objects */
+        /* mocking details */
 
-//         const fakeUser = {
-//             email     : 'umair.raza@gmail.com',
-//             password  : '123456'          
-//         }
+        const email = 'umair.raza@gmail.com'
+        const password = '12345678'          
 
-//         const req = {
-//             body : fakeUser
-//         }
+        /* stubbing mongoose and dependency methods */
+        sinon.stub(usersModel,'findOne').resolves(null)
+        const compare_stub = sinon.stub(bcrypt,'compare')
+        const token_generation_stub = sinon.stub(jwt,'sign')
 
-//         const res = {
-//             status : sinon.stub().returnsThis(),
-//             json   : sinon.stub()
-//         }
+        var thrownError = null
 
-//         /* stubbing mongoose and dependency methods */
-//         sinon.stub(usersModel,'findOne').resolves(null)
-//         const compare_stub = sinon.stub(bcrypt,'compare')
+        try {
+            await authService.signinService(email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
 
-//         /* stubbing error middleware */
-//         const next = sinon.spy()
+        expect(thrownError.statusCode).to.equal(401)
+        expect(thrownError.message).to.equal('Incorrect / Unregistered Email')
+        expect(compare_stub.called).to.be.false
+        expect(token_generation_stub.called).to.be.false 
+    })
 
-//         await signinController(req,res,next)
+    it('should provide meaningful error message if password is incorrect', async () => {
 
-//         expect(next.calledOnce).to.be.true
-//         expect(next.firstCall.args[0].statusCode).to.equal(401)
-//         expect(next.firstCall.args[0].message).to.equal('Incorrect Email')
-//         expect(compare_stub.called).to.be.false
-//     })
+        const email = 'umair.raza@gmail.com'
+        const password = '123456'         
 
-    
-//     it('should provide meaningful error message if password is incorrect', async () => {
+        const userFound = {
+            _id : '507f1f77bcf86cd799439011',
+            name: 'Umair Raza',
+            email: 'umair.raza@gmail.com',
+            password : '654321',
+            createdAt : new Date(),
+            updatedAt : new Date()
+        }
 
-//         /* mock request and response objects */
+        /* stubbing mongoose and dependency methods */
+        sinon.stub(usersModel,'findOne').resolves(userFound)
+        const compare_stub = sinon.stub(bcrypt,'compare').resolves(false)
+        const token_generation_stub = sinon.stub(jwt,'sign')
 
-//         const fakeUser = {
-//             email     : 'umair.raza@gmail.com',
-//             password  : '123456'          
-//         }
+        var thrownError = null
 
-//         const req = {
-//             body : fakeUser
-//         }
+        try {
+            await authService.signinService(email,password)
+        }
+        catch(err)
+        {
+            thrownError = err
+        }
 
-//         const res = {
-//             status : sinon.stub().returnsThis(),
-//             json   : sinon.stub()
-//         }
+        expect(thrownError.statusCode).to.equal(401)
+        expect(thrownError.message).to.equal('Incorrect Password')
+        expect(compare_stub.calledOnce).to.be.true
+        expect(token_generation_stub.called).to.be.false
+    })
 
-//         const userFound = {
-//             _id : '507f1f77bcf86cd799439011',
-//             ...fakeUser,
-//             password : '654321',
-//             createdAt : new Date(),
-//             updatedAt : new Date()
-//         }
-
-//         /* stubbing mongoose and dependency methods */
-//         sinon.stub(usersModel,'findOne').resolves(userFound)
-//         sinon.stub(bcrypt,'compare').resolves(false)
-//         const token_generation_stub = sinon.stub(jwt,'sign')
-
-//         /* stubbing error middleware */
-//         const next = sinon.spy()
-
-//         await signinController(req,res,next)
-
-//         expect(next.calledOnce).to.be.true
-//         expect(next.firstCall.args[0].statusCode).to.equal(401)
-//         expect(next.firstCall.args[0].message).to.equal('Incorrect Password')
-//         expect(token_generation_stub.called).to.be.false
-//     })
-
-// })
-
-// describe('Logout Controller', () => {
-
-//     it('should return a success message with appropriate status code', async () => {
-
-//         /* mock request and response objects */
-
-//         /* empty response header for now before redis implementation */
-//         const req = {}
-//         const res = {
-//             status: sinon.stub().returnsThis(),
-//             json  : sinon.stub()
-//         }
-//         const next = sinon.spy()
-
-//         await logoutController(req,res,next)
-
-//         expect(res.status.calledWith(200)).to.be.true
-//         expect(res.json.calledWith({'Message' : 'Logged Out Successfully'})).to.be.true
-//         expect(next.called).to.be.false
-//     })
-// })
+})

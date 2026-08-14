@@ -29,7 +29,7 @@ const signupService = async (name,email,password) =>
 
     if (password.length < 8)
     {
-        const err = new Error('Password should be at least 8 characters')
+        const err = new Error('Password should be at least 8 characters long')
         err.statusCode = 400
         throw err
     }

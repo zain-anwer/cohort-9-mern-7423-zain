@@ -50,7 +50,7 @@ describe('Signup Controller',() => {
     it('should reject signup if field(s) are missing and return a meaningful error message', async () => {
         
         const fakeUser = {
-            name     : 'Umair Raza',
+            name     : '',
             email    : 'umair.raza@gmail.com',
             password : '123456'
         }
@@ -145,7 +145,7 @@ describe('Signup Controller',() => {
         const next = sinon.spy()
 
         /* mock error */
-        const fakeError = new Error('Password should be at least 8 characters')
+        const fakeError = new Error('Password should be at least 8 characters long')
         fakeError.statusCode = 400
 
         /* replacing service layer */
@@ -157,7 +157,7 @@ describe('Signup Controller',() => {
         /* assertions */
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(400)
-        expect(next.firstCall.args[0].message).to.equal('Password should be at least 8 characters')
+        expect(next.firstCall.args[0].message).to.equal('Password should be at least 8 characters long')
     })
 
     it('should reject signup on email duplication and return a meaningful error message', async () => {
