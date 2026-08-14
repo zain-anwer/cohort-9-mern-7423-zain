@@ -1,4 +1,4 @@
-import {signupService,signinService} from '../services/auth.service.js'
+import authService from '../services/auth.service.js'
 
 export const signupController = async (req,res,next) =>
 {
@@ -8,13 +8,13 @@ export const signupController = async (req,res,next) =>
         const {name, email, password} = req.body
 
         /* invoking signup service */
-        const access_token = await signupService(name,email,password)
-        
+        const access_token = await authService.signupService(name,email,password)
+         
         /* 1. the access token would be received on the client side */
         /* 2. it would be stored in local storage */
         /* 3. it would be added to authorization header for every subsequent request object */
         return res.status(201).json({
-            'status'       : 'SignUp Successful',
+            'status'       : 'Signup Successful',
             'access_token' : access_token
         })
     }
@@ -31,13 +31,13 @@ export const signinController = async (req,res,next) =>
         console.log('signin endpoint reached')
 
         const {email,password} = req.body
-        const access_token = await signinService(email,password)
+        const access_token = await authService.signinService(email,password)
         
         /* 1. the access token would be received on the client side */
         /* 2. it would be stored in local storage */
         /* 3. it would be added to authorization header for every subsequent request object */
         return res.status(200).json({
-            'status'       : 'SignIn Successful',
+            'status'       : 'Signin Successful',
             'access_token' : access_token
         })
     }

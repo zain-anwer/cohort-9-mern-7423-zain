@@ -1,6 +1,6 @@
 import notesModel from "../models/notes.model.js"
 
-export const createNoteService = async (note_object) =>
+const createNoteService = async (note_object) =>
 {  
     const note = await notesModel.create(note_object)
     console.log('Note Added: ')
@@ -8,7 +8,7 @@ export const createNoteService = async (note_object) =>
     return note
 }
 
-export const updateNoteService = async (note_id,user_id,note_object) => {
+const updateNoteService = async (note_id,user_id,note_object) => {
     
     const updated_note = await notesModel.findOneAndUpdate(
         {_id: note_id, user_id: user_id},
@@ -32,11 +32,12 @@ export const updateNoteService = async (note_id,user_id,note_object) => {
     return updated_note
 }
 
-export const deleteNoteService = async (note_id,user_id) => {
+const deleteNoteService = async (note_id,user_id) => {
     
-    const result = await notesModel.deleteOne({_id: note_id, user_id: user_id})
+    /* using findOneAndDelete instead of deleteOne so that deleted note could be sent for undo */
+    const deleted_note = await notesModel.findOneAndDelete({_id: note_id, user_id: user_id})
 
-    if (result.deletedCount)
+    if (deleted_note)
         console.log('Deletion Successful')
     else
     {
@@ -47,7 +48,7 @@ export const deleteNoteService = async (note_id,user_id) => {
     }
 }
 
-export const getNoteService = async (note_id,user_id) => {
+const getNoteService = async (note_id,user_id) => {
     
     const note = await notesModel.findOne({_id:note_id,user_id:user_id})
         
@@ -62,9 +63,17 @@ export const getNoteService = async (note_id,user_id) => {
     return note
 }
 
-export const getAllNotesService = async (user_id) => {
+const getAllNotesService = async (user_id) => {
     
     const notes = await notesModel.find({user_id:user_id})  
 
     return notes
+}
+
+export default {
+    createNoteService,
+    updateNoteService,
+    deleteNoteService,
+    getNoteService,
+    getAllNotesService
 }

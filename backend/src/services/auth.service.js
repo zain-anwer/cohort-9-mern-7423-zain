@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 dotenv.config()
 
-export const signupService = async (name,email,password) =>
+const signupService = async (name,email,password) =>
 {
     /* checking for empty payload */
     name = name.trim()
@@ -59,7 +59,7 @@ export const signupService = async (name,email,password) =>
     return access_token
 }
 
-export const signinService = async (email,password) => {
+const signinService = async (email,password) => {
        
     const user = await userModel.findOne({'email' : email})
     
@@ -89,4 +89,15 @@ export const signinService = async (email,password) => {
     )
 
     return access_token
+}
+
+
+/*
+- default javaScript objects are configurable allowing sinon.stub() to work on them
+- namespace exotic objects are not configurable so using import * as authService from ... wouldn't have worked
+*/
+
+export default {
+    signupService,
+    signinService
 }
