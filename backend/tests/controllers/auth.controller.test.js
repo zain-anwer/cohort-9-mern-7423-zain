@@ -359,18 +359,55 @@ describe('Logout Controller', () => {
 
         /* mock request and response objects */
 
-        /* empty response header for now before redis implementation */
-        const req = {}
+        const fakeToken = 'this.is.a.dummy.token'
+        const req = {
+            headers : {
+                authorization: `Bearer ${fakeToken}`
+            }
+        }
         const res = {
             status: sinon.stub().returnsThis(),
             json  : sinon.stub()
         }
+
         const next = sinon.spy()
+
+        /* stubbing logout service */
+        const logout_service_stub = sinon.stub(authService,'logoutService')
 
         await logoutController(req,res,next)
 
+        expect(logout_service_stub.calledOnce).to.be.true
+        expect(logout_service_stub.firstCall.args[0]).to.equal(fakeToken)
         expect(res.status.calledWith(200)).to.be.true
         expect(res.json.calledWith({'Message' : 'Logged Out Successfully'})).to.be.true
         expect(next.called).to.be.false
     })
+    
+    it('should return return an appropriate error if authorization header is not found', async () => {
+
+        /* mock request and response objects */
+
+        /* empty request header */
+        const req = {
+            headers : {}
+        }
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        const next = sinon.spy()
+
+        /* stubbing logout service */
+        const logout_service_stub = sinon.stub(authService,'logoutService')
+
+        await logoutController(req,res,next)
+
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(401)
+        expect(next.firstCall.args[0].message).to.equal('Authorization Token Missing')
+        expect(logout_service_stub.called).to.be.false
+    })
+
 })

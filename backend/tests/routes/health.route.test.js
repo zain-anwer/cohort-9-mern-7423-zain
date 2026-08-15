@@ -11,7 +11,7 @@ describe('GET /api/health', () =>
             expect(res.status).to.equal(200)
         }
         catch(err) {
-            fail('Request Failed: ',err)
+            throw new Error('Request Failed: ',err)
         }
     })
 
@@ -22,7 +22,7 @@ describe('GET /api/health', () =>
             expect(res.body).to.deep.equal({status: 'ok'})
         }
         catch(err) {
-            fail('Request Failed: ',err)
+            throw new Error('Request Failed: ',err)
         }
     })
     

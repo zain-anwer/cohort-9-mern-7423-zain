@@ -53,6 +53,12 @@ export const logoutController = async (req,res,next) =>
     {
         console.log('logout endpoint reached')
         const token = req.headers.authorization?.split(' ')[1]
+        if (token == undefined)
+        {
+            const err = new Error('Authorization Token Missing')
+            err.statusCode = 401
+            throw err
+        }
         await authService.logoutService(token)
         return res.status(200).json({'Message' : 'Logged Out Successfully'})
     }

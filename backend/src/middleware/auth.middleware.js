@@ -1,9 +1,9 @@
-import revokedNoteModel from '../models/notes.model.js'
+import revokedNoteModel from '../models/token.model.js'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 dotenv.config()
 
-const authMiddleware = (req,res,next) => {
+const authMiddleware = async (req,res,next) => {
     
     /* authenticates protected APIs by checking token in auth header */
 
@@ -33,11 +33,15 @@ const authMiddleware = (req,res,next) => {
         return next(err)
     }
 
-    const result = revokedNoteModel.findOne({jti: payload.jti})
-
-    if (result) {
-        const err = new Error('Unauthorized Access - token has been revoked')
-        err.statusCode = 401
+    try {
+        const result = await revokedNoteModel.findOne({jti: payload.jti})
+        if (result) {
+            const err = new Error('Unauthorized Access - token has been revoked')
+            err.statusCode = 401
+            return next(err)
+        }
+    }
+    catch(err) {
         return next(err)
     }
     

@@ -123,13 +123,32 @@ const signinService = async (email,password) => {
  
 const logoutService = async (token) => {
     
-    const decoded = jwt.decode(token)
+    var decoded = null
+    
+    try {
+        decoded = jwt.verify(token,process.env.JWT_SECRET)
+    }
+    catch(error) {
+        const err = new Error('Invalid or expired token')
+        err.statusCode = 401
+        throw err
+    }
 
-    if (decoded?.user_id && decoded?.exp){
-        await revokedTokenModel.create({
-            jti: decoded.jti,
-            expiresAt: new Date(decoded.exp * 1000)
-        })
+    if (decoded?.userId && decoded?.jti && decoded?.exp){
+        await revokedTokenModel.updateOne(
+            { jti: decoded.jti },
+            {
+                $set: {
+                    expiresAt: new Date(decoded.exp * 1000)
+                }
+            },
+            { upsert: true }
+        )
+    }
+    else {
+        const err = new Error('Invalid Token')
+        err.statusCode = 401
+        throw err
     }
 }
 
