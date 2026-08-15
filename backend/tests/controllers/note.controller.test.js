@@ -355,8 +355,6 @@ describe('Note Retrieval Controller', () => {
 
 })
 
-
-
 describe('All Notes Retrieval Controller', () => {
     
     afterEach(() => {

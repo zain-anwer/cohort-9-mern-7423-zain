@@ -4,6 +4,7 @@ import {expect} from 'chai'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import sinon from 'sinon'
+import tokenModel from '../../src/models/token.model.js'
 
 describe('Signup Service',() => {
 
@@ -302,4 +303,55 @@ describe('Signin Service',() => {
 
 })
 
+describe('Logout Service',() => { 
+    
+    afterEach(() => {
+        sinon.restore()
+    })
+
+    it('should successfully write revoked token in database', async () => {
+
+        /* mock tokens */
+        const token = 'this.is.a.dummy.token'
+        const decoded = {
+            userId: 'mock_id',
+            jti   : 'mock_id',
+            exp   : 12345
+        }      
+
+        /* stubbing methods */
+        sinon.stub(jwt,'verify').returns(decoded)
+        const db_call_stub = sinon.stub(tokenModel,'updateOne').resolves()
+        
+        await authService.logoutService(token)
+
+        /* assertions */
+        expect(db_call_stub.calledOnce).to.be.true
+    })
+
+    
+    it('should throw error write on invalid or expired token', async () => {
+
+        /* mock token */
+        const token = 'this.is.an.expired.token'
+
+        /* stubbing methods */
+        sinon.stub(jwt,'verify').throws(new Error('Generic Error'))
+        const db_call_stub = sinon.stub(tokenModel,'updateOne')
+        
+        let error = null
+        try {
+            await authService.logoutService(token)
+        }
+        catch(err)
+        {
+            error = err
+        }
+
+        /* assertions */
+        expect(error.statusCode).to.equal(401)
+        expect(error.message).to.equal('Invalid or expired token')
+        expect(db_call_stub.called).to.be.false
+    })
+})
  

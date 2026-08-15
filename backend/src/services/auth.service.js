@@ -19,7 +19,7 @@ const signupService = async (name,email,password) =>
 
     /* checking for empty strings in payload */
     name = name.trim()
-    email = email.trim()
+    email = email.trim().toLowerCase()
     password = password.trim()
 
     if (!name || !email || !password)
@@ -80,7 +80,7 @@ const signinService = async (email,password) => {
         throw err
     }
 
-    email = email.trim()
+    email = email.trim().toLowerCase()
     password = password.trim()
     if (email == '' || password == '')
     {
