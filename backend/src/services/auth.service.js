@@ -1,7 +1,9 @@
 import userModel from '../models/users.model.js'
+import revokedTokenModel from '../models/token.model.js'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 dotenv.config()
 
 const signupService = async (name,email,password) =>
@@ -57,8 +59,11 @@ const signupService = async (name,email,password) =>
     const user_instance = await userModel.create({name: name,email: email,password: password_hashed})
     console.log('User created')
         
+    /* unique identifier for jwt token */
+    const jti = crypto.randomUUID()
+
     const access_token = jwt.sign(
-        {userId: user_instance._id},
+        {userId: user_instance._id,jti: jti},
         process.env.JWT_SECRET,
         {expiresIn: '1h'}
     )
@@ -67,12 +72,28 @@ const signupService = async (name,email,password) =>
 }
 
 const signinService = async (email,password) => {
-       
+
+    if (typeof email != 'string' || typeof password != 'string')
+    {
+        const err = new Error('All Fields Required')
+        err.statusCode = 400
+        throw err
+    }
+
+    email = email.trim()
+    password = password.trim()
+    if (email == '' || password == '')
+    {
+        const err = new Error('All Fields Required')
+        err.statusCode = 400
+        throw err
+    }
+
     const user = await userModel.findOne({'email' : email})
     
     if (!user)
     {
-        const err = new Error('Incorrect / Unregistered Email')
+        const err = new Error('Incorrect email or password')
         err.statusCode = 401
         throw err
     }
@@ -83,20 +104,34 @@ const signinService = async (email,password) => {
         console.log('User Verified')
     else
     {
-        const err = new Error('Incorrect Password')
+        const err = new Error('Incorrect email or password')
         err.statusCode = 401
         throw err
     }
     
+    /* unique identifier for jwt token */
+    const jti = crypto.randomUUID()
+
     const access_token = jwt.sign(
-        {userId: user._id},
+        {userId: user._id, jti: jti},
         process.env.JWT_SECRET,
         {expiresIn: '1h'}
     )
 
     return access_token
 }
+ 
+const logoutService = async (token) => {
+    
+    const decoded = jwt.decode(token)
 
+    if (decoded?.user_id && decoded?.exp){
+        await revokedTokenModel.create({
+            jti: decoded.jti,
+            expiresAt: new Date(decoded.exp * 1000)
+        })
+    }
+}
 
 /*
 - default javaScript objects are configurable allowing sinon.stub() to work on them
@@ -105,5 +140,6 @@ const signinService = async (email,password) => {
 
 export default {
     signupService,
-    signinService
+    signinService,
+    logoutService
 }

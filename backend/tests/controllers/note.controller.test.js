@@ -11,7 +11,7 @@ import sinon from 'sinon'
 describe('Note Creation Controller', () => {
 
     afterEach(() => {
-            sinon.restore()
+        sinon.restore()
     })
 
     it('should create and return created note successfully with appropriate status code', async () => {
@@ -20,13 +20,14 @@ describe('Note Creation Controller', () => {
 
         const fakeNote = {
             title   : 'Friday Dinner',
-            content : 'It was fun'
+            content : 'It was fun',
+            user_id : 'attacker.supplied.id'
         }
 
         const creationResult = {
             _id: '72170c5ah3d29e919f30b113',
-            user_id: '62170c5af3d27e919f30b100',
             ...fakeNote,
+            user_id: '62170c5af3d27e919f30b100',
             createdAt: new Date(),
             updatedAt: new Date()
         }
@@ -56,6 +57,9 @@ describe('Note Creation Controller', () => {
         
         /* assertions */
         expect(res.status.calledWith(201)).to.be.true
+        expect(noteService.createNoteService.calledWithExactly(
+            {user_id:req.user.id,title:fakeNote.title,content:fakeNote.content}
+        )).to.be.true
         expect(res.json.calledWith(
             {
                 'Message' : 'Note Created Successfully',
@@ -85,7 +89,8 @@ describe('Note Updation Controller', () => {
             },
             body: {
                 title: 'Kale Salad At Olive Garden',
-                content: 'I liked this one'
+                content: 'I liked this one',
+                user_id: 'attacker.supplied.id'
             }
         }
 
@@ -114,7 +119,10 @@ describe('Note Updation Controller', () => {
         await updateNoteController(req,res,next)
 
         /* assertions */
-        expect(res.status.calledWith(200)).to.be.true,
+        expect(res.status.calledWith(200)).to.be.true
+         expect(noteService.updateNoteService.calledWithExactly(
+            req.params.id,req.user.id,{title: req.body.title,content: req.body.content}
+        )).to.be.true
         expect(res.json.calledWith(
             {
                 Message: 'Note Updated Successfully',
@@ -123,7 +131,6 @@ describe('Note Updation Controller', () => {
         )).to.be.true
 
         expect(next.called).to.be.false
-        expect(noteService.updateNoteService.calledWithExactly(req.params.id,req.user.id,req.body)).to.be.true
     })
 
     it('should return appropriate error code and message if note is not found', async () => {
@@ -161,6 +168,9 @@ describe('Note Updation Controller', () => {
         await updateNoteController(req,res,next)
 
         /* assertions */
+        expect(noteService.updateNoteService.calledWithExactly(
+            req.params.id,req.user.id,{title: req.body.title,content: req.body.content}
+        )).to.be.true
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(404)
         expect(next.firstCall.args[0].message).to.equal('Note Not Found')

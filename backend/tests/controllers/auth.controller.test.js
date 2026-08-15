@@ -295,7 +295,7 @@ describe('Signin Controller',() => {
         }
 
         /* mock error */
-        const fakeError = new Error('Incorrect / Unregistered Email')
+        const fakeError = new Error('Incorrect email or password')
         fakeError.statusCode = 401
 
         /* stubbing service layer */
@@ -308,7 +308,7 @@ describe('Signin Controller',() => {
 
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(401)
-        expect(next.firstCall.args[0].message).to.equal('Incorrect / Unregistered Email')
+        expect(next.firstCall.args[0].message).to.equal('Incorrect email or password')
     })
 
     
@@ -331,7 +331,7 @@ describe('Signin Controller',() => {
         }
 
         /* mock error */
-        const fakeError = new Error('Incorrect Password')
+        const fakeError = new Error('Incorrect email or password')
         fakeError.statusCode = 401
 
         /* stubbing service layer */
@@ -344,7 +344,7 @@ describe('Signin Controller',() => {
 
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(401)
-        expect(next.firstCall.args[0].message).to.equal('Incorrect Password')
+        expect(next.firstCall.args[0].message).to.equal('Incorrect email or password')
     })
 
 })

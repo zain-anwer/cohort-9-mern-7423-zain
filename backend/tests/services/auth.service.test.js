@@ -260,7 +260,7 @@ describe('Signin Service',() => {
         }
 
         expect(thrownError.statusCode).to.equal(401)
-        expect(thrownError.message).to.equal('Incorrect / Unregistered Email')
+        expect(thrownError.message).to.equal('Incorrect email or password')
         expect(compare_stub.called).to.be.false
         expect(token_generation_stub.called).to.be.false 
     })
@@ -295,7 +295,7 @@ describe('Signin Service',() => {
         }
 
         expect(thrownError.statusCode).to.equal(401)
-        expect(thrownError.message).to.equal('Incorrect Password')
+        expect(thrownError.message).to.equal('Incorrect email or password')
         expect(compare_stub.calledOnce).to.be.true
         expect(token_generation_stub.called).to.be.false
     })

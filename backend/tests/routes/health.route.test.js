@@ -6,14 +6,24 @@ describe('GET /api/health', () =>
 {
     it('should return status 200', async ()=> 
     {
-        const res = await request(app).get('/api/health')
-        expect(res.status).to.equal(200)
+        try {
+            const res = await request(app).get('/api/health')
+            expect(res.status).to.equal(200)
+        }
+        catch(err) {
+            fail('Request Failed: ',err)
+        }
     })
 
     it('should return JSON object {status: "ok"}',async () => 
     {
-        const res = await request(app).get('/api/health')
-        expect(res.body).to.deep.equal({status: 'ok'})
+        try {
+            const res = await request(app).get('/api/health')
+            expect(res.body).to.deep.equal({status: 'ok'})
+        }
+        catch(err) {
+            fail('Request Failed: ',err)
+        }
     })
     
 })

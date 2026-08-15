@@ -3,8 +3,7 @@ import notesModel from "../models/notes.model.js"
 const createNoteService = async (note_object) =>
 {  
     const note = await notesModel.create(note_object)
-    console.log('Note Added: ')
-    console.log(note)
+    console.log('Note Added')
     return note
 }
 
@@ -29,8 +28,7 @@ const updateNoteService = async (note_id,user_id,note_object) => {
         throw err
     }
 
-    console.log('Updated Note: ')
-    console.log(updated_note)
+    console.log('Note Updated')
     return updated_note
 }
 

@@ -11,7 +11,7 @@ export const signupController = async (req,res,next) =>
     try {
         console.log('signup endpoint reached')
  
-        const {name, email, password} = req.body
+        const {name, email, password} = req.body ?? {}
         const access_token = await authService.signupService(name,email,password)
  
         return res.status(201).json({
@@ -31,7 +31,7 @@ export const signinController = async (req,res,next) =>
     {
         console.log('signin endpoint reached')
 
-        const {email,password} = req.body
+        const {email,password} = req.body ?? {}
         const access_token = await authService.signinService(email,password)
         
         return res.status(200).json({
@@ -45,16 +45,15 @@ export const signinController = async (req,res,next) =>
     }
 }
 
-export const logoutController = (req,res,next) =>
+export const logoutController = async (req,res,next) =>
 {
-    /* 
-        token deleted at frontend -- will implement redis blocklist later to 
-        cater to deleted unexpired tokens 
-    */
+    /* creating a token and passing it to the service that adds it to the revoked token document in database */
 
     try
     {
         console.log('logout endpoint reached')
+        const token = req.headers.authorization?.split(' ')[1]
+        await authService.logoutService(token)
         return res.status(200).json({'Message' : 'Logged Out Successfully'})
     }
     catch(err)
