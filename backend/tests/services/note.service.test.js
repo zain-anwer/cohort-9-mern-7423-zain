@@ -68,6 +68,8 @@ describe('Note Updation Service', () => {
 
         /* assertions */
         expect(result).to.equal(updated_note)
+        expect(notesModel.findOneAndUpdate.firstCall.args[0]).to.deep.equal({_id:note_id,user_id:user_id})
+        expect(notesModel.findOneAndUpdate.firstCall.args[2]).to.deep.equal({new:true,runValidators:true})
     })
 
     it('should return appropriate error message and status code if note does not exist', async() => {
@@ -211,6 +213,11 @@ describe('Note Retrieval Service', () => {
 })
 
 describe('All Notes Retrieval Service', () => {
+    
+    afterEach(() => {
+        sinon.restore()
+    })
+
     it('should return notes array successfully', async () => {
         /* mocking user id */
         const user_id = '25c2a1f4e3b0d44298fc1c12'

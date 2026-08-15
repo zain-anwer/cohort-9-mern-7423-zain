@@ -61,7 +61,7 @@ describe('Note Creation Controller', () => {
                 'Message' : 'Note Created Successfully',
                 'created_note' : creationResult
             }
-        ))
+        )).to.be.true
         expect(next.called).to.be.false
     })
 })
@@ -82,6 +82,10 @@ describe('Note Updation Controller', () => {
             },
             user: {
                 id: '42170c5ak1d27e919f30b119'
+            },
+            body: {
+                title: 'Kale Salad At Olive Garden',
+                content: 'I liked this one'
             }
         }
 
@@ -116,8 +120,10 @@ describe('Note Updation Controller', () => {
                 Message: 'Note Updated Successfully',
                 updated_note: updated_note
             }
-        ))
+        )).to.be.true
+
         expect(next.called).to.be.false
+        expect(noteService.updateNoteService.calledWithExactly(req.params.id,req.user.id,req.body)).to.be.true
     })
 
     it('should return appropriate error code and message if note is not found', async () => {
@@ -130,6 +136,10 @@ describe('Note Updation Controller', () => {
             },
             user: {
                 id: '42170c5ak1d27e919f30b119'
+            },
+            body: {
+                title: 'Kale Salad At Olive Garden',
+                content: 'Their dressing was the key to making it edible'
             }
         }
 
@@ -205,7 +215,7 @@ describe('Note Deletion Controller', () => {
         expect(res.json.calledWith({
             Message: 'Note Deleted Successfully',
             deleted_note: deleted_note
-        }))
+        })).to.be.true
         expect(next.called).to.be.false
     })
 

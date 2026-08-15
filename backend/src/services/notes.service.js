@@ -11,8 +11,10 @@ const createNoteService = async (note_object) =>
 const updateNoteService = async (note_id,user_id,note_object) => {
     
     const updated_note = await notesModel.findOneAndUpdate(
+        
         {_id: note_id, user_id: user_id},
         note_object,
+        
         /* new: true ensures that the updated record/document is returned */
         /* runValidators: true ensures that schema validation is run on updated document */
         {new: true, runValidators: true}

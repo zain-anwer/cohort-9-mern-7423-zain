@@ -6,7 +6,16 @@ dotenv.config()
 
 const signupService = async (name,email,password) =>
 {
-    /* checking for empty payload */
+    /* checking for missing fields in payload */
+    /* typeof a missing field returns undefined so can be used here */
+    if (typeof name != 'string' || typeof email != 'string' || typeof password != 'string')
+    {
+        const err = new Error('All Fields Required')
+        err.statusCode = 400
+        throw err
+    }
+
+    /* checking for empty strings in payload */
     name = name.trim()
     email = email.trim()
     password = password.trim()
@@ -14,7 +23,7 @@ const signupService = async (name,email,password) =>
     if (!name || !email || !password)
     {
         const err = new Error('All Fields Required')
-        err.statusCode = 400                                // bad request
+        err.statusCode = 400                               
         throw err
     }
 
@@ -23,7 +32,7 @@ const signupService = async (name,email,password) =>
     if (!email_regex.test(email))
     {
         const err = new Error('Invalid Email Pattern')
-        err.statusCode = 400                                // bad request
+        err.statusCode = 400                                
         throw err
     }
 
@@ -46,10 +55,8 @@ const signupService = async (name,email,password) =>
 
     const password_hashed = await bcrypt.hash(password,10)
     const user_instance = await userModel.create({name: name,email: email,password: password_hashed})
-    console.log('User created:')
-    console.log(user_instance)
+    console.log('User created')
         
-    /* token creation -- using authorization header communication mechanism */
     const access_token = jwt.sign(
         {userId: user_instance._id},
         process.env.JWT_SECRET,
@@ -81,7 +88,6 @@ const signinService = async (email,password) => {
         throw err
     }
     
-    /* token creation -- using authorization header communication mechanism */
     const access_token = jwt.sign(
         {userId: user._id},
         process.env.JWT_SECRET,

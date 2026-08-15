@@ -47,7 +47,43 @@ describe('Signup Controller',() => {
         expect(next.called).to.be.false
     })
 
-    it('should reject signup if field(s) are missing and return a meaningful error message', async () => {
+     it('should reject signup if field(s) are missing and return a meaningful error message', async () => {
+        
+        const fakeUser = {
+            email    : 'umair.raza@gmail.com',
+            password : '123456'
+        }
+    
+        /* dummy request, response, and next */
+
+        const req = {
+            body: fakeUser
+        }
+
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json: sinon.stub()
+        }
+
+        const next = sinon.spy()
+
+        /* mock error */
+        const fakeError = new Error('All Fields Required')
+        fakeError.statusCode = 400   
+
+        /* stubbing service layer */
+        sinon.stub(authService,'signupService').rejects(fakeError)      
+
+        /* calling controller method with dummy data */
+        await signupController(req,res,next)
+
+        /* assertions */
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(400)
+        expect(next.firstCall.args[0].message).to.equal('All Fields Required')
+    })
+
+    it('should reject signup if field(s) are empty strings and return a meaningful error message', async () => {
         
         const fakeUser = {
             name     : '',
@@ -314,6 +350,10 @@ describe('Signin Controller',() => {
 })
 
 describe('Logout Controller', () => {
+
+    afterEach(() => {
+        sinon.restore()
+    })
 
     it('should return a success message with appropriate status code', async () => {
 

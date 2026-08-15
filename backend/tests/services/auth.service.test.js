@@ -40,7 +40,38 @@ describe('Signup Service',() => {
         expect(access_token).to.equal('this.is.a.dummy.access.token')
     })
 
-    it('should reject signup if fields are missing and return a meaningful error', async () => {
+    it('should reject signup if fields are missing and throw a meaningful error', async () => {
+        
+        const name     = undefined
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'
+
+        /* replacing dependency methods with stubbed methods */
+        /* resolves is used for asynchronous methods and returns is used for synchronous ones */
+        const db_call = sinon.stub(usersModel,'findOne')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+        const hash_stub = sinon.stub(bcrypt,'hash')      
+
+        /* error result */
+        var thrownError = null
+
+        /* calling signup service with dummy data */
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        /* assertions */
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('All Fields Required')
+        expect(db_call.called).to.be.false
+        expect(hash_stub.called).to.be.false                                // to check whether thrown error terminated workflow
+        expect(token_generation_stub.called).to.be.false
+    })
+
+    it('should reject signup if fields are empty strings and throw a meaningful error', async () => {
         
         const name     = ''
         const email    = 'umair.raza@gmail.com'

@@ -8,15 +8,28 @@ const authMiddleware = (req,res,next) => {
 
     const authHeader = req.headers.authorization
     if (!authHeader)
-        return next(new AppError('Authorization Header Missing',401))
+    {
+        const err = new Error('Authorization Header Missing')
+        err.statusCode = 401
+        return next(err)
+    }
 
     /* req['headers']['authorization'] = 'Bearer <TOKEN>' */
-    const token = authHeader.split(' ')[1]
+    const [scheme,token] = authHeader.split(' ')
 
-    const payload = jwt.verify(token,process.env.JWT_SECRET)
+    if (scheme != 'Bearer' || !token) {
+        const err = new Error('Invalid Authorization Header')
+        err.statusCode = 401
+        return next(err)
+    }
 
-    if (!payload)
-        next(new AppError('Invalid or Expired Token',401))
+    try {
+        jwt.verify(token,process.env.JWT_SECRET)
+    }
+    catch(err) {
+        err.statusCode = 401
+        return next(err)
+    }
     
     /* append the user id to req object after extraction for controller level verification */
     req.user = {}
