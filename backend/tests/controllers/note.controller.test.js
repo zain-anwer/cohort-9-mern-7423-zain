@@ -248,7 +248,7 @@ describe('Note Deletion Controller', () => {
         }
 
         /* mocking error */
-        const fakeError = new Error('Record Not Found')
+        const fakeError = new Error('Note Not Found')
         fakeError.statusCode = 404
 
         /* stubbing service layer */
@@ -262,7 +262,7 @@ describe('Note Deletion Controller', () => {
         /* assertions */
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(404)
-        expect(next.firstCall.args[0].message).to.equal('Record Not Found')
+        expect(next.firstCall.args[0].message).to.equal('Note Not Found')
     })
 
 })
@@ -336,7 +336,7 @@ describe('Note Retrieval Controller', () => {
         }
 
         /* mocking error */
-        const fakeError = new Error('Record Not Found')
+        const fakeError = new Error('Note Not Found')
         fakeError.statusCode = 404
 
         /* stubbing service layer */
@@ -350,7 +350,7 @@ describe('Note Retrieval Controller', () => {
         /* assertions */
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(404)
-        expect(next.firstCall.args[0].message).to.equal('Record Not Found')
+        expect(next.firstCall.args[0].message).to.equal('Note Not Found')
     })
 
 })

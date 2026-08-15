@@ -8,6 +8,13 @@ export const createNoteController = async (req,res,next) =>
 
         /* extracting title and content only so user can't provide user_id to overwrite ownership */
         const {title,content} = req.body ?? {} 
+
+        if (!title || !content)
+        {
+            const err = new Error('No Values Given')
+            err.statusCode = 400
+            throw err
+        }
         
         /* since the middleware already appends user id to req object we use it directly */
         const note = await noteService.createNoteService(
@@ -36,6 +43,13 @@ export const updateNoteController = async (req,res,next) =>
  
         /* extracting only title and content here as well so that user_id can't be overridden */
         const {title,content} = req.body ?? {}
+
+        if (!title || !content)
+        {
+            const err = new Error('No Updated Values Given')
+            err.statusCode = 400
+            throw err
+        }
 
         const updated_note = await noteService.updateNoteService(req.params.id,req.user.id,{title,content})
         return res.status(200).json({
