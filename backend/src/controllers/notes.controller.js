@@ -7,13 +7,16 @@ export const createNoteController = async (req,res,next) =>
         console.log('note creation endpoint reached') 
 
         /* extracting title and content only so user can't provide user_id to overwrite ownership */
-        const {title,content} = req.body ?? {} 
+        let {title,content} = req.body ?? {} 
 
-        if (!title || !content)
+        if (!title && !content)
         {
             const err = new Error('No Values Given')
             err.statusCode = 400
             throw err
+        }
+        else if (!title) {
+            title = 'Untitled'
         }
         
         /* since the middleware already appends user id to req object we use it directly */
@@ -44,7 +47,7 @@ export const updateNoteController = async (req,res,next) =>
         /* extracting only title and content here as well so that user_id can't be overridden */
         const {title,content} = req.body ?? {}
 
-        if (!title || !content)
+        if (title === undefined && content === undefined) 
         {
             const err = new Error('No Updated Values Given')
             err.statusCode = 400
