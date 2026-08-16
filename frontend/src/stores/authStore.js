@@ -46,12 +46,17 @@ const useAuthStore = create((set) => ({
         set({error: null, isLoading: true})
         try {
             await logout()
-            localStorage.removeItem('access_token')
-            set({isAuthenticated: false, isLoading: false, user: null, token: null})
         }
         catch(err) {
             set({error: err.response?.data?.message || 'Logout Failed',isLoading:false})
             throw err
+        }
+
+        /* clear local storage and change state even if api call fails at backend */
+
+        finally {
+            localStorage.removeItem('access_token')
+            set({isAuthenticated: false, isLoading: false, user: null, token: null})
         }
     }
 }))
