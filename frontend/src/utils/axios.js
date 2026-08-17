@@ -12,7 +12,7 @@ const axiosInstance = axios.create({
 /* interceptors change the config object created on API call and sit between the frontend and backend */
 
 /* request interceptor to populate authorization header */
-axios.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem('access_token')
     if (token)
         config.headers = {'authorization' : `Bearer ${token}`}
@@ -21,7 +21,7 @@ axios.interceptors.request.use((config) => {
 
 /* response interceptor to redirect to signin page at 401 */
 /* first function on success and second function on error */
-axios.interceptors.response.use(
+axiosInstance.interceptors.response.use(
     response => response,
     error => {
         if (error.response?.status === 401)
