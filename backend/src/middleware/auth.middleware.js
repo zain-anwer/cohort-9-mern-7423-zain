@@ -1,24 +1,52 @@
+import revokedNoteModel from '../models/token.model.js'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 dotenv.config()
 
-const authMiddleware = (req,res,next) => {
+const authMiddleware = async (req,res,next) => {
     
     /* authenticates protected APIs by checking token in auth header */
 
-    authHeader = req.headers.authorization
+    const authHeader = req.headers.authorization
     if (!authHeader)
-        return next(new AppError('Authorization Header Missing',401))
+    {
+        const err = new Error('Authorization Header Missing')
+        err.statusCode = 401
+        return next(err)
+    }
 
     /* req['headers']['authorization'] = 'Bearer <TOKEN>' */
-    token = authHeader.split(' ')[1]
+    const [scheme,token] = authHeader.split(' ')
 
-    payload = jwt.verify(token,process.env.JWT_SECRET)
+    if (scheme != 'Bearer' || !token) {
+        const err = new Error('Invalid Authorization Header')
+        err.statusCode = 401
+        return next(err)
+    }
 
-    if (!payload)
-        next(new AppError('Invalid or Expired Token',401))
+    var payload = null
+    try {
+        payload = jwt.verify(token,process.env.JWT_SECRET)
+    }
+    catch(err) {
+        err.statusCode = 401
+        return next(err)
+    }
+
+    try {
+        const result = await revokedNoteModel.findOne({jti: payload.jti})
+        if (result) {
+            const err = new Error('Unauthorized Access - token has been revoked')
+            err.statusCode = 401
+            return next(err)
+        }
+    }
+    catch(err) {
+        return next(err)
+    }
     
     /* append the user id to req object after extraction for controller level verification */
+    req.user = {}
     req.user.id = payload.userId 
 
     next()

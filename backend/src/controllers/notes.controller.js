@@ -1,22 +1,64 @@
-export const createNoteController = (req,res,next) =>
+import noteService from "../services/notes.service.js"
+
+export const createNoteController = async (req,res,next) =>
 {
     try
-    {
-        console.log('note creation endpoint reached')
-        return res.json({'Message' : 'Note Creation Controller Working'})
+    { 
+        console.log('note creation endpoint reached') 
+
+        /* extracting title and content only so user can't provide user_id to overwrite ownership */
+        let {title,content} = req.body ?? {} 
+
+        if (!title && !content)
+        {
+            const err = new Error('No Values Given')
+            err.statusCode = 400
+            throw err
+        }
+        else if (!title) {
+            title = 'Untitled'
+        }
+        
+        /* since the middleware already appends user id to req object we use it directly */
+        const note = await noteService.createNoteService(
+            {
+                user_id: req.user.id,
+                title: title,
+                content: content
+            }
+        )
+        return res.status(201).json({
+            'Message' : 'Note Created Successfully',
+            'created_note': note 
+        })
     }
-    catch(err)
+    catch(err) 
     {
         next(err)
     }
 }
 
-export const updateNoteController = (req,res,next) =>
+export const updateNoteController = async (req,res,next) =>
 {
     try
     {
         console.log('note updation endpoint reached')
-        return res.json({'Message' : 'Note Updation Controller Working'})
+ 
+        /* extracting only title and content here as well so that user_id can't be overridden */
+        const {title,content} = req.body ?? {}
+
+        if (title === undefined && content === undefined) 
+        {
+            const err = new Error('No Updated Values Given')
+            err.statusCode = 400
+            throw err
+        }
+
+        const updated_note = await noteService.updateNoteService(req.params.id,req.user.id,{title,content})
+        return res.status(200).json({
+            'Message' : 'Note Updated Successfully',
+            'updated_note' : updated_note
+        })
     }
     catch(err)
     {
@@ -24,12 +66,18 @@ export const updateNoteController = (req,res,next) =>
     }
 }
 
-export const deleteNoteController = (req,res,next) =>
+export const deleteNoteController = async (req,res,next) =>
 {
     try
     {
         console.log('note deletion endpoint reached')
-        return res.json({'Message' : 'Note Deletion Controller Working'})
+        const deleted_note = await noteService.deleteNoteService(req.params.id,req.user.id)
+        return res.status(200).json(
+            {
+                'Message' : 'Note Deleted Successfully',
+                'deleted_note' : deleted_note
+            }
+        )
     }
     catch(err)
     {
@@ -37,12 +85,13 @@ export const deleteNoteController = (req,res,next) =>
     }
 }
 
-export const getNoteController = (req,res,next) => 
+export const getNoteController = async (req,res,next) => 
 {
     try
     {
         console.log('note read endpoint reached')
-        return res.json({'Message' : 'Read Note Controller Working'})
+        const note = await noteService.getNoteService(req.params.id,req.user.id)
+        return res.status(200).json(note)
     }
     catch(err)
     {
@@ -50,12 +99,13 @@ export const getNoteController = (req,res,next) =>
     }
 }
 
-export const getAllNotesController = (req,res,next) => 
+export const getAllNotesController = async (req,res,next) => 
 {
     try
     {
         console.log('note read endpoint reached')
-        return res.json({'Message' : 'Read All Notes Controller Working'})
+        const notes = await noteService.getAllNotesService(req.user.id)
+        return res.status(200).json(notes)
     }
     catch(err)
     {
