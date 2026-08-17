@@ -35,10 +35,15 @@ describe('Signup Service',() => {
         sinon.stub(bcrypt,'hash').resolves('this.is.a.dummy.hash')        
 
         /* calling service method with dummy data */
-        const access_token = await authService.signupService(name,email,password)
+        const result = await authService.signupService(name,email,password)
 
         /* assertions */
-        expect(access_token).to.equal('this.is.a.dummy.access.token')
+        expect(result.access_token).to.equal('this.is.a.dummy.access.token')
+        expect(result.user).to.deep.equal({
+            _id: '507f1f77bcf86cd799439011',
+            name: name,
+            email: email
+        })
     })
 
     it('should reject signup if fields are missing and throw a meaningful error', async () => {
@@ -217,6 +222,7 @@ describe('Signin Service',() => {
 
         /* mocking service parameters */
         
+        const name = 'Umair Raza'
         const email = 'umair.raza@gmail.com'
         const password = '12345678'          
 
@@ -234,9 +240,14 @@ describe('Signin Service',() => {
         sinon.stub(jwt,'sign').returns('this.is.a.dummy.access.token')
         sinon.stub(bcrypt,'compare').resolves(true)
         
-        const access_token = await authService.signinService(email,password)
+        const result = await authService.signinService(email,password)
         
-        expect(access_token).to.equal('this.is.a.dummy.access.token')
+        expect(result.access_token).to.equal('this.is.a.dummy.access.token')
+        expect(result.user).to.deep.equal({
+            _id: '507f1f77bcf86cd799439011',
+            name: name,
+            email: email
+        })
     })
     
     it('should provide meaningful error message if user email is invalid or not found', async () => {

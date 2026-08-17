@@ -33,7 +33,14 @@ describe('Signup Controller',() => {
 
         /* replacing dependency methods with stubbed methods */
         /* resolves is used for asynchronous methods and returns is used for synchronous ones */
-        sinon.stub(authService,'signupService').resolves('this.is.a.dummy.access.token')
+        sinon.stub(authService,'signupService').resolves({
+            access_token: 'this.is.a.dummy.access.token',
+            user: {
+                _id: '507f1f77bcf86cd799439011',
+                name: 'Umair Raza',
+                email: 'umair.raza@gmail.com'
+            }
+        })
 
         /* calling controller method with dummy data */
         await signupController(req,res,next)
@@ -42,7 +49,12 @@ describe('Signup Controller',() => {
         expect(res.status.calledWith(201)).to.be.true
         expect(res.json.calledWith(sinon.match({
             status: 'Signup Successful',
-            access_token: sinon.match.string
+            access_token: 'this.is.a.dummy.access.token',
+            user: sinon.match({
+                _id: sinon.match.string,
+                name: sinon.match.string,
+                email: sinon.match.string
+            })
         }))).to.be.true
         expect(next.called).to.be.false
     })
@@ -261,7 +273,15 @@ describe('Signin Controller',() => {
         }
 
         /* stubbing service layer */
-        sinon.stub(authService,'signinService').resolves('this.is.a.dummy.token')
+        sinon.stub(authService,'signinService').resolves({
+            access_token: 'this.is.a.dummy.access.token',
+            user: {
+                _id: '507f1f77bcf86cd799439011',
+                name: 'Umair Raza',
+                email: 'umair.raza@gmail.com'
+            }
+        })
+
 
         /* stubbing error middleware */
         const next = sinon.spy()
@@ -271,7 +291,12 @@ describe('Signin Controller',() => {
         expect(res.status.calledWith(200)).to.be.true
         expect(res.json.calledWith(sinon.match({
             status: 'Signin Successful',
-            access_token: sinon.match.string
+            access_token: 'this.is.a.dummy.access.token',
+            user: sinon.match({
+                _id: sinon.match.string,
+                name: sinon.match.string,
+                email: sinon.match.string
+            })
         }))).to.be.true
         expect(next.called).to.be.false
     })
