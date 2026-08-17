@@ -3,10 +3,11 @@ import dotenv from 'dotenv'
 import connectDB from './configs/db.js'
 dotenv.config()
 
+let PORT
+
 try {
     await connectDB()
-    const PORT = process.env.PORT
-    app.listen(PORT,() => { console.log(`Server listening at port ${PORT}`) })
+    PORT = process.env.PORT
 }
 catch(err)
 {
@@ -14,3 +15,13 @@ catch(err)
     /* process.exit(code) if code 0 successful execution if 1 abnormal termination */
     process.exit(1)
 }
+
+const server = app.listen(PORT,() => { console.log(`Server listening at port ${PORT}`) })
+
+server.on('error', (err) => {
+    if (err.code == 'EADDRINUSE')
+        console.log(`PORT:${PORT} already in use`)
+    else
+        console.log(`Server failed to start: ${err}`)
+    process.exit(1)
+})
