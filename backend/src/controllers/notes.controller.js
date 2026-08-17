@@ -4,7 +4,7 @@ export const createNoteController = async (req,res,next) =>
 {
     try
     { 
-        console.log('note creation endpoint reached') 
+        req.log.info('creating note') 
 
         /* extracting title and content only so user can't provide user_id to overwrite ownership */
         let {title,content} = req.body ?? {} 
@@ -42,7 +42,7 @@ export const updateNoteController = async (req,res,next) =>
 {
     try
     {
-        console.log('note updation endpoint reached')
+        req.log.info({ noteId: req.params.id }, 'updating note')
  
         /* extracting only title and content here as well so that user_id can't be overridden */
         const {title,content} = req.body ?? {}
@@ -70,7 +70,7 @@ export const deleteNoteController = async (req,res,next) =>
 {
     try
     {
-        console.log('note deletion endpoint reached')
+        req.log.info({ noteId: req.params.id }, 'deleting note')
         const deleted_note = await noteService.deleteNoteService(req.params.id,req.user.id)
         return res.status(200).json(
             {
@@ -89,7 +89,7 @@ export const getNoteController = async (req,res,next) =>
 {
     try
     {
-        console.log('note read endpoint reached')
+        req.log.info({ noteId: req.params.id }, 'fetching note')
         const note = await noteService.getNoteService(req.params.id,req.user.id)
         return res.status(200).json(note)
     }
@@ -103,7 +103,7 @@ export const getAllNotesController = async (req,res,next) =>
 {
     try
     {
-        console.log('note read endpoint reached')
+        req.log.info('note read endpoint reached')
         const notes = await noteService.getAllNotesService(req.user.id)
         return res.status(200).json(notes)
     }

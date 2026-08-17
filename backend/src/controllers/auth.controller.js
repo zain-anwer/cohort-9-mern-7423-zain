@@ -9,11 +9,14 @@ import authService from '../services/auth.service.js'
 export const signupController = async (req,res,next) =>
 {
     try {
-        console.log('signup endpoint reached')
- 
         const {name, email, password} = req.body ?? {}
         const {access_token,user} = await authService.signupService(name,email,password)
  
+        req.log.info(
+            { userId: user._id },
+            'User signup successful'
+        )
+
         return res.status(201).json({
             'status'       : 'Signup Successful',
             'access_token' : access_token,
@@ -30,11 +33,14 @@ export const signinController = async (req,res,next) =>
 {
     try
     {
-        console.log('signin endpoint reached')
-
         const {email,password} = req.body ?? {}
         const {access_token, user} = await authService.signinService(email,password)
         
+        req.log.info(
+            { userId: user._id },
+            'User signin successful'
+        )
+
         return res.status(200).json({
             'status'       : 'Signin Successful',
             'access_token' : access_token,
@@ -53,8 +59,7 @@ export const logoutController = async (req,res,next) =>
 
     try
     {
-        console.log('logout endpoint reached')
-        const [scheme,token] = req.headers.authorization?.split(' ')
+        const [scheme,token] = req.headers.authorization?.split(' ') ?? []
         if (scheme != 'Bearer' || !token)
         {
             const err = new Error('Authorization Token Missing')
@@ -62,6 +67,11 @@ export const logoutController = async (req,res,next) =>
             throw err
         }
         await authService.logoutService(token)
+        
+        req.log.info(
+            'User logged out successfully'
+        )
+
         return res.status(200).json({'Message' : 'Logged Out Successfully'})
     }
     catch(err)

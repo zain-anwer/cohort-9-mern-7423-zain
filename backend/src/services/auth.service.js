@@ -75,7 +75,6 @@ const signupService = async (name,email,password) =>
         }
         throw err
     }
-    console.log('User created')
         
     /* unique identifier for jwt token */
     const jti = crypto.randomUUID()
@@ -124,9 +123,7 @@ const signinService = async (email,password) => {
     
     const match = await bcrypt.compare(password,user.password)
     
-    if (match)
-        console.log('User Verified')
-    else
+    if (!match)
     {
         const err = new Error('Incorrect email or password')
         err.statusCode = 401

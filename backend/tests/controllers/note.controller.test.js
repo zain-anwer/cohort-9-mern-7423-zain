@@ -36,7 +36,10 @@ describe('Note Creation Controller', () => {
             user: {
                 id: '62170c5af3d27e919f30b100'
             },
-            body: fakeNote
+            body: fakeNote,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         /* we make them separate properties so they calls to them can be tracked */
@@ -91,6 +94,9 @@ describe('Note Updation Controller', () => {
                 title: 'Kale Salad At Olive Garden',
                 content: 'I liked this one',
                 user_id: 'attacker.supplied.id'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -147,6 +153,9 @@ describe('Note Updation Controller', () => {
             body: {
                 title: 'Kale Salad At Olive Garden',
                 content: 'Their dressing was the key to making it edible'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -193,6 +202,9 @@ describe('Note Deletion Controller', () => {
             },
             user: {
                 id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -239,6 +251,9 @@ describe('Note Deletion Controller', () => {
             },
             user: {
                 id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -284,6 +299,9 @@ describe('Note Retrieval Controller', () => {
             },
             user: {
                 id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -327,6 +345,9 @@ describe('Note Retrieval Controller', () => {
             },
             user: {
                 id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
@@ -368,6 +389,9 @@ describe('All Notes Retrieval Controller', () => {
         const req = {
             user: {
                 id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
             }
         }
 
