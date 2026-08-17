@@ -56,19 +56,22 @@ const signupService = async (name,email,password) =>
     }
 
     const password_hashed = await bcrypt.hash(password,10)
-    const user_instance = await userModel.create({name: name,email: email,password: password_hashed})
+    const user = await userModel.create({name: name,email: email,password: password_hashed})
     console.log('User created')
         
     /* unique identifier for jwt token */
     const jti = crypto.randomUUID()
 
     const access_token = jwt.sign(
-        {userId: user_instance._id,jti: jti},
+        {userId: user._id,jti: jti},
         process.env.JWT_SECRET,
         {expiresIn: '1h'}
     )
-       
-    return access_token
+     
+    const userSafe = user.toObject()
+    delete userSafe.password
+
+    return {access_token,user: userSafe}
 }
 
 const signinService = async (email,password) => {
@@ -118,7 +121,10 @@ const signinService = async (email,password) => {
         {expiresIn: '1h'}
     )
 
-    return access_token
+    const userSafe = user.toObject()
+    delete userSafe.password
+
+    return {access_token,user: userSafe}
 }
  
 const logoutService = async (token) => {

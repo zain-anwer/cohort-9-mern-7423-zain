@@ -12,11 +12,12 @@ export const signupController = async (req,res,next) =>
         console.log('signup endpoint reached')
  
         const {name, email, password} = req.body ?? {}
-        const access_token = await authService.signupService(name,email,password)
+        const {access_token,user} = await authService.signupService(name,email,password)
  
         return res.status(201).json({
             'status'       : 'Signup Successful',
-            'access_token' : access_token
+            'access_token' : access_token,
+            'user'         : user
         })
     }
     catch(err)
@@ -32,11 +33,12 @@ export const signinController = async (req,res,next) =>
         console.log('signin endpoint reached')
 
         const {email,password} = req.body ?? {}
-        const access_token = await authService.signinService(email,password)
+        const {access_token, user} = await authService.signinService(email,password)
         
         return res.status(200).json({
             'status'       : 'Signin Successful',
-            'access_token' : access_token
+            'access_token' : access_token,
+            'user': user
         })
     }
     catch(err)
