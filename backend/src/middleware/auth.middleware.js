@@ -33,6 +33,13 @@ const authMiddleware = async (req,res,next) => {
         return next(err)
     }
 
+    /* validating payload body to contain both userId and jti */
+    if (typeof payload?.jti != 'string' || typeof payload?.userId != 'string' && !payload?.userId) {
+        const err = new Error('Invalid Token')
+        err.statusCode = 401
+        return next(err)
+    }
+
     try {
         const result = await revokedNoteModel.findOne({jti: payload.jti})
         if (result) {
