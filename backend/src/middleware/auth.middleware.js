@@ -3,6 +3,12 @@ import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 dotenv.config()
 
+/* adding an explicit error to track JWT SECRET read fails */
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required')
+}
+
 const authMiddleware = async (req,res,next) => {
     
     /* authenticates protected APIs by checking token in auth header */
@@ -26,7 +32,7 @@ const authMiddleware = async (req,res,next) => {
 
     var payload = null
     try {
-        payload = jwt.verify(token,process.env.JWT_SECRET)
+        payload = jwt.verify(token,JWT_SECRET)
     }
     catch(err) {
         err.statusCode = 401
@@ -34,7 +40,7 @@ const authMiddleware = async (req,res,next) => {
     }
 
     /* validating payload body to contain both userId and jti */
-    if (typeof payload?.jti != 'string' || typeof payload?.userId != 'string' && !payload?.userId) {
+    if (typeof payload?.jti != 'string' || typeof payload?.userId != 'string') {
         const err = new Error('Invalid Token')
         err.statusCode = 401
         return next(err)

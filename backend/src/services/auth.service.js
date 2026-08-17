@@ -6,6 +6,12 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 dotenv.config()
 
+/* adding an explicit error to track JWT SECRET read fails */
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required')
+}
+
 const signupService = async (name,email,password) =>
 {
     /* checking for missing fields in payload */
@@ -56,7 +62,19 @@ const signupService = async (name,email,password) =>
     }
 
     const password_hashed = await bcrypt.hash(password,10)
-    const user = await userModel.create({name: name,email: email,password: password_hashed})
+    let user
+
+    try {
+        user = await userModel.create({name: name,email: email,password: password_hashed}) 
+    }
+    catch(err) {
+        if (err?.code === 11000) {
+            const error = new Error('Email Already Exists')
+            error.statusCode = 409
+            throw error
+        }
+        throw err
+    }
     console.log('User created')
         
     /* unique identifier for jwt token */
@@ -64,7 +82,7 @@ const signupService = async (name,email,password) =>
 
     const access_token = jwt.sign(
         {userId: user._id,jti: jti},
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         {expiresIn: '1h'}
     )
      
@@ -120,7 +138,7 @@ const signinService = async (email,password) => {
 
     const access_token = jwt.sign(
         {userId: user._id, jti: jti},
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         {expiresIn: '1h'}
     )
 
@@ -138,7 +156,7 @@ const logoutService = async (token) => {
     var decoded = null
     
     try {
-        decoded = jwt.verify(token,process.env.JWT_SECRET)
+        decoded = jwt.verify(token,JWT_SECRET)
     }
     catch(error) {
         const err = new Error('Invalid or expired token')
