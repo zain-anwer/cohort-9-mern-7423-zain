@@ -68,8 +68,11 @@ const signupService = async (name,email,password) =>
         {expiresIn: '1h'}
     )
      
-    const userSafe = user.toObject()
-    delete userSafe.password
+    const userSafe = {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+    }
 
     return {access_token,user: userSafe}
 }
@@ -121,8 +124,11 @@ const signinService = async (email,password) => {
         {expiresIn: '1h'}
     )
 
-    const userSafe = user.toObject()
-    delete userSafe.password
+    const userSafe = {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+    }
 
     return {access_token,user: userSafe}
 }
