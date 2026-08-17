@@ -14,8 +14,10 @@ jest.mock('../src/utils/axios', () => ({
 
 describe('App Component', () => {
     it('should render without crashing', () => {
-        <MemoryRouter>
-            render(<App/>)
-        </MemoryRouter>
+        render(
+            <MemoryRouter>
+                <App/>
+            </MemoryRouter>
+        )
     })
 })

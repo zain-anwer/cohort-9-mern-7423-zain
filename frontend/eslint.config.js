@@ -23,6 +23,11 @@ export default defineConfig([
   },
    {
     files: ['**/*.test.jsx', '**/*.test.js'],
+    languageOptions: {
+        globals: {
+            ...globals.jest
+        }
+    },
     plugins: {
       'jest-dom': jestDom,
       'testing-library': testingLibrary
