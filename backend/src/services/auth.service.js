@@ -163,15 +163,22 @@ const logoutService = async (token) => {
 
     if (typeof decoded.userId === 'string' && typeof decoded.jti === 'string' 
         && typeof decoded.exp === 'number' && Number.isFinite(decoded.exp)){
-        await revokedTokenModel.updateOne(
-            { jti: decoded.jti },
-            {
-                $set: {
-                    expiresAt: new Date(decoded.exp * 1000)
-                }
-            },
-            { upsert: true }
-        )
+        try {
+            await revokedTokenModel.updateOne(
+                { jti: decoded.jti },
+                {
+                    $set: {
+                        expiresAt: new Date(decoded.exp * 1000)
+                    }
+                },
+                { upsert: true }
+            )
+        }
+        catch(error) {
+            const err = new Error('Unable to revoke token')
+            err.statusCode = 500
+            throw err
+        }
     }
     else {
         const err = new Error('Invalid Token')
