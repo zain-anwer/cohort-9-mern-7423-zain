@@ -71,6 +71,85 @@ describe('Note Creation Controller', () => {
         )).to.be.true
         expect(next.called).to.be.false
     })
+
+    it('should default title to Untitled when title is missing but content is provided', async () => {
+
+        const fakeNote = {
+            content : 'It was fun',
+            user_id : 'attacker.supplied.id'
+        }
+
+        const creationResult = {
+            _id: '72170c5ah3d29e919f30b113',
+            title: 'Untitled',
+            content: fakeNote.content,
+            user_id: '62170c5af3d27e919f30b100',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }
+
+        const req = {
+            user: {
+                id: '62170c5af3d27e919f30b100'
+            },
+            body: fakeNote,
+            log: {
+                info: sinon.stub()
+            }
+        }
+
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        sinon.stub(noteService,'createNoteService').resolves(creationResult)
+
+        const next = sinon.spy()
+
+        await createNoteController(req,res,next)
+
+        expect(res.status.calledWith(201)).to.be.true
+        expect(noteService.createNoteService.calledWithExactly(
+            {user_id:req.user.id,title:'Untitled',content:fakeNote.content}
+        )).to.be.true
+        expect(res.json.calledWith(
+            {
+                'Message' : 'Note Created Successfully',
+                'created_note' : creationResult
+            }
+        )).to.be.true
+        expect(next.called).to.be.false
+    })
+
+    it('should return an appropriate error message and status code if title and content are both missing', async () => {
+
+        const req = {
+            user: {
+                id: '62170c5af3d27e919f30b100'
+            },
+            body: {},
+            log: {
+                info: sinon.stub()
+            }
+        }
+
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        const create_note_service_stub = sinon.stub(noteService,'createNoteService')
+
+        const next = sinon.spy()
+
+        await createNoteController(req,res,next)
+
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(400)
+        expect(next.firstCall.args[0].message).to.equal('No Values Given')
+        expect(create_note_service_stub.called).to.be.false
+    })
 })
 
 describe('Note Updation Controller', () => {
@@ -183,6 +262,38 @@ describe('Note Updation Controller', () => {
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(404)
         expect(next.firstCall.args[0].message).to.equal('Note Not Found')
+    })
+
+    it('should return appropriate error code and message if title and content are both undefined', async () => {
+
+        const req = {
+            params: {
+                id: '62170c5af3d27e919f30b100'
+            },
+            user: {
+                id: '42170c5ak1d27e919f30b119'
+            },
+            body: {},
+            log: {
+                info: sinon.stub()
+            }
+        }
+
+        const res = {
+            status : sinon.stub().returnsThis(),
+            json   : sinon.stub()
+        }
+
+        const update_note_service_stub = sinon.stub(noteService,'updateNoteService')
+
+        const next = sinon.spy()
+
+        await updateNoteController(req,res,next)
+
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(400)
+        expect(next.firstCall.args[0].message).to.equal('No Updated Values Given')
+        expect(update_note_service_stub.called).to.be.false
     })
 })
 
@@ -424,5 +535,34 @@ describe('All Notes Retrieval Controller', () => {
         expect(res.json.calledWith(notes)).to.be.true
         expect(next.called).to.be.false
     })
-})
 
+    it('should send appropriate error message and status code if notes could not be retrieved', async() => {
+
+        const req = {
+            user: {
+                id: '15c2a1d4c3b0c34291fc1c02'
+            },
+            log: {
+                info: sinon.stub()
+            }
+        }
+
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        const fakeError = new Error('Notes Not Found')
+        fakeError.statusCode = 404
+
+        sinon.stub(noteService,'getAllNotesService').rejects(fakeError)
+
+        const next = sinon.spy()
+
+        await getAllNotesController(req,res,next)
+
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(404)
+        expect(next.firstCall.args[0].message).to.equal('Notes Not Found')
+    })
+})
