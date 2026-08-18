@@ -210,6 +210,59 @@ describe('Signup Service',() => {
         expect(token_generation_stub.called).to.be.false
     })
 
+    it('should reject signup on duplicate key error from the database and return a meaningful error', async () => {
+
+        const name     = 'Umair Raza'
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'
+
+        sinon.stub(usersModel,'findOne').resolves(null)
+        sinon.stub(bcrypt,'hash').resolves('this.is.a.dummy.hash')
+        const duplicateKeyError = new Error('E11000 duplicate key error')
+        duplicateKeyError.code = 11000
+        sinon.stub(usersModel,'create').rejects(duplicateKeyError)
+        const token_generation_stub = sinon.stub(jwt,'sign')
+
+        var thrownError = null
+
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError.statusCode).to.equal(409)
+        expect(thrownError.message).to.equal('Email Already Exists')
+        expect(token_generation_stub.called).to.be.false
+    })
+
+    it('should propagate unexpected database errors during signup', async () => {
+
+        const name     = 'Umair Raza'
+        const email    = 'umair.raza@gmail.com'
+        const password = '12345678'
+
+        sinon.stub(usersModel,'findOne').resolves(null)
+        sinon.stub(bcrypt,'hash').resolves('this.is.a.dummy.hash')
+        const genericError = new Error('Connection Lost')
+        sinon.stub(usersModel,'create').rejects(genericError)
+        const token_generation_stub = sinon.stub(jwt,'sign')
+
+        var thrownError = null
+
+        try {
+            await authService.signupService(name,email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError).to.equal(genericError)
+        expect(thrownError.statusCode).to.be.undefined
+        expect(token_generation_stub.called).to.be.false
+    })
+
 })
 
 describe('Signin Service',() => {
@@ -248,6 +301,56 @@ describe('Signin Service',() => {
             name: name,
             email: email
         })
+    })
+
+    it('should reject signin if fields are missing and throw a meaningful error', async () => {
+
+        const email = undefined
+        const password = '12345678'
+
+        const db_call = sinon.stub(usersModel,'findOne')
+        const compare_stub = sinon.stub(bcrypt,'compare')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+
+        var thrownError = null
+
+        try {
+            await authService.signinService(email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('All Fields Required')
+        expect(db_call.called).to.be.false
+        expect(compare_stub.called).to.be.false
+        expect(token_generation_stub.called).to.be.false
+    })
+
+    it('should reject signin if fields are empty strings and throw a meaningful error', async () => {
+
+        const email = '   '
+        const password = '12345678'
+
+        const db_call = sinon.stub(usersModel,'findOne')
+        const compare_stub = sinon.stub(bcrypt,'compare')
+        const token_generation_stub = sinon.stub(jwt,'sign')
+
+        var thrownError = null
+
+        try {
+            await authService.signinService(email,password)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError.statusCode).to.equal(400)
+        expect(thrownError.message).to.equal('All Fields Required')
+        expect(db_call.called).to.be.false
+        expect(compare_stub.called).to.be.false
+        expect(token_generation_stub.called).to.be.false
     })
     
     it('should provide meaningful error message if user email is invalid or not found', async () => {
@@ -364,5 +467,28 @@ describe('Logout Service',() => {
         expect(error.message).to.equal('Invalid or expired token')
         expect(db_call_stub.called).to.be.false
     })
+
+    it('should throw error if decoded token is missing required fields', async () => {
+
+        const token = 'this.is.a.dummy.token'
+        const decoded = {
+            userId: 'mock_id'
+        }
+
+        sinon.stub(jwt,'verify').returns(decoded)
+        const db_call_stub = sinon.stub(tokenModel,'updateOne')
+
+        let error = null
+        try {
+            await authService.logoutService(token)
+        }
+        catch(err)
+        {
+            error = err
+        }
+
+        expect(error.statusCode).to.equal(401)
+        expect(error.message).to.equal('Invalid Token')
+        expect(db_call_stub.called).to.be.false
+    })
 })
- 

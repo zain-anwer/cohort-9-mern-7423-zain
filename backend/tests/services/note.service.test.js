@@ -99,6 +99,31 @@ describe('Note Updation Service', () => {
         expect(thrownError.statusCode).to.equal(404)
         expect(thrownError.message).to.equal('Note Not Found')
     })
+
+    it('should return appropriate error message and status code if note id is invalid', async() => {
+
+        const note_id = 'invalid-id'
+        const user_id = '102f1f77bcf86bd799439042'
+        const note_object = {
+            'title' : 'Kale Salad',
+            'content': 'Do not recommend'
+        }
+
+        const db_call_stub = sinon.stub(notesModel,'findOneAndUpdate')
+
+        var thrownError = null
+
+        try {
+            await noteService.updateNoteService(note_id,user_id,note_object)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError.statusCode).to.equal(404)
+        expect(thrownError.message).to.equal('Note Not Found')
+        expect(db_call_stub.called).to.be.false
+    })
 })
 
 describe('Note Deletion Service', () => {
@@ -155,6 +180,27 @@ describe('Note Deletion Service', () => {
         expect(thrownError.statusCode).to.equal(404)
         expect(thrownError.message).to.equal('Record Not Found')
     })
+
+    it('should return appropriate error message and status code if note id is invalid', async() => {
+
+        const note_id = 'invalid-id'
+        const user_id = '102f1f77bcf86bd799439042'
+
+        const db_call_stub = sinon.stub(notesModel,'findOneAndDelete')
+
+        var thrownError = null
+
+        try {
+            await noteService.deleteNoteService(note_id,user_id)
+        }
+        catch(err) {
+            thrownError = err
+        }
+
+        expect(thrownError.statusCode).to.equal(404)
+        expect(thrownError.message).to.equal('Note Not Found')
+        expect(db_call_stub.called).to.be.false
+    })
 })
 
 describe('Note Retrieval Service', () => {
@@ -209,6 +255,28 @@ describe('Note Retrieval Service', () => {
         expect(thrownError).to.not.equal(null)
         expect(thrownError.statusCode).to.equal(404)
         expect(thrownError.message).to.equal('Note Not Found')
+    })
+
+    it('should throw error with appropriate message and status code if note id is invalid', async () => {
+        const note_id = 'invalid-id'
+        const user_id = '25c2a1f4e3b0d44298fc1c12'
+
+        const db_call_stub = sinon.stub(notesModel,'findOne')
+
+        var thrownError = null
+
+        try {
+            await noteService.getNoteService(note_id,user_id)
+        }
+        catch(err)
+        {
+            thrownError = err
+        }
+
+        expect(thrownError).to.not.equal(null)
+        expect(thrownError.statusCode).to.equal(404)
+        expect(thrownError.message).to.equal('Note Not Found')
+        expect(db_call_stub.called).to.be.false
     })
 })
 
