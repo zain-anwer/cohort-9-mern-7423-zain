@@ -461,8 +461,6 @@ describe('Logout Controller', () => {
         const logout_service_stub = sinon.stub(authService,'logoutService')
 
         await logoutController(req,res,next)
-
-        console.log(next.firstCall.args[0])
         
         expect(next.calledOnce).to.be.true
         expect(next.firstCall.args[0].statusCode).to.equal(401)

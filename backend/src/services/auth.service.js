@@ -161,7 +161,8 @@ const logoutService = async (token) => {
         throw err
     }
 
-    if (decoded?.userId && decoded?.jti && decoded?.exp){
+    if (typeof decoded.userId === 'string' && typeof decoded.jti === 'string' 
+        && typeof decoded.exp === 'number' && Number.isFinite(decoded.exp)){
         await revokedTokenModel.updateOne(
             { jti: decoded.jti },
             {
