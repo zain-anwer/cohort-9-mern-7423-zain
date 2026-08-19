@@ -6,6 +6,12 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 dotenv.config()
 
+/* adding an explicit error to track JWT SECRET read fails */
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required')
+}
+
 const signupService = async (name,email,password) =>
 {
     /* checking for missing fields in payload */
@@ -56,15 +62,26 @@ const signupService = async (name,email,password) =>
     }
 
     const password_hashed = await bcrypt.hash(password,10)
-    const user = await userModel.create({name: name,email: email,password: password_hashed})
-    console.log('User created')
+    let user
+
+    try {
+        user = await userModel.create({name: name,email: email,password: password_hashed}) 
+    }
+    catch(err) {
+        if (err?.code === 11000) {
+            const error = new Error('Email Already Exists')
+            error.statusCode = 409
+            throw error
+        }
+        throw err
+    }
         
     /* unique identifier for jwt token */
     const jti = crypto.randomUUID()
 
     const access_token = jwt.sign(
         {userId: user._id,jti: jti},
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         {expiresIn: '1h'}
     )
      
@@ -106,9 +123,7 @@ const signinService = async (email,password) => {
     
     const match = await bcrypt.compare(password,user.password)
     
-    if (match)
-        console.log('User Verified')
-    else
+    if (!match)
     {
         const err = new Error('Incorrect email or password')
         err.statusCode = 401
@@ -120,7 +135,7 @@ const signinService = async (email,password) => {
 
     const access_token = jwt.sign(
         {userId: user._id, jti: jti},
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         {expiresIn: '1h'}
     )
 
@@ -138,7 +153,7 @@ const logoutService = async (token) => {
     var decoded = null
     
     try {
-        decoded = jwt.verify(token,process.env.JWT_SECRET)
+        decoded = jwt.verify(token,JWT_SECRET)
     }
     catch(error) {
         const err = new Error('Invalid or expired token')
@@ -146,16 +161,24 @@ const logoutService = async (token) => {
         throw err
     }
 
-    if (decoded?.userId && decoded?.jti && decoded?.exp){
-        await revokedTokenModel.updateOne(
-            { jti: decoded.jti },
-            {
-                $set: {
-                    expiresAt: new Date(decoded.exp * 1000)
-                }
-            },
-            { upsert: true }
-        )
+    if (typeof decoded.userId === 'string' && typeof decoded.jti === 'string' 
+        && typeof decoded.exp === 'number' && Number.isFinite(decoded.exp)){
+        try {
+            await revokedTokenModel.updateOne(
+                { jti: decoded.jti },
+                {
+                    $set: {
+                        expiresAt: new Date(decoded.exp * 1000)
+                    }
+                },
+                { upsert: true }
+            )
+        }
+        catch(error) {
+            const err = new Error('Unable to revoke token')
+            err.statusCode = 500
+            throw err
+        }
     }
     else {
         const err = new Error('Invalid Token')

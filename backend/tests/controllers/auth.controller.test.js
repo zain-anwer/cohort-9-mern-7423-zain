@@ -20,7 +20,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -69,7 +72,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -106,7 +112,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -144,7 +153,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -182,7 +194,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -219,7 +234,10 @@ describe('Signup Controller',() => {
         /* dummy request, response, and next */
 
         const req = {
-            body: fakeUser
+            body: fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -264,7 +282,10 @@ describe('Signin Controller',() => {
         }
 
         const req = {
-            body : fakeUser
+            body : fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -311,7 +332,10 @@ describe('Signin Controller',() => {
         }
 
         const req = {
-            body : fakeUser
+            body : fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -347,7 +371,10 @@ describe('Signin Controller',() => {
         }
 
         const req = {
-            body : fakeUser
+            body : fakeUser,
+            log: {
+                info: sinon.stub()
+            }
         }
 
         const res = {
@@ -388,6 +415,9 @@ describe('Logout Controller', () => {
         const req = {
             headers : {
                 authorization: `Bearer ${fakeToken}`
+            },
+            log: {
+                info: sinon.stub()
             }
         }
         const res = {
@@ -415,7 +445,10 @@ describe('Logout Controller', () => {
 
         /* empty request header */
         const req = {
-            headers : {}
+            headers : {},
+            log: {
+                info: sinon.stub()
+            }
         }
         const res = {
             status: sinon.stub().returnsThis(),
@@ -425,6 +458,60 @@ describe('Logout Controller', () => {
         const next = sinon.spy()
 
         /* stubbing logout service */
+        const logout_service_stub = sinon.stub(authService,'logoutService')
+
+        await logoutController(req,res,next)
+        
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(401)
+        expect(next.firstCall.args[0].message).to.equal('Authorization Token Missing')
+        expect(logout_service_stub.called).to.be.false
+    })
+
+    it('should return an appropriate error if authorization scheme is not Bearer', async () => {
+
+        const req = {
+            headers : {
+                authorization: 'Basic this.is.a.dummy.token'
+            },
+            log: {
+                info: sinon.stub()
+            }
+        }
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        const next = sinon.spy()
+
+        const logout_service_stub = sinon.stub(authService,'logoutService')
+
+        await logoutController(req,res,next)
+
+        expect(next.calledOnce).to.be.true
+        expect(next.firstCall.args[0].statusCode).to.equal(401)
+        expect(next.firstCall.args[0].message).to.equal('Authorization Token Missing')
+        expect(logout_service_stub.called).to.be.false
+    })
+
+    it('should return an appropriate error if Bearer scheme is present without a token', async () => {
+
+        const req = {
+            headers : {
+                authorization: 'Bearer'
+            },
+            log: {
+                info: sinon.stub()
+            }
+        }
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json  : sinon.stub()
+        }
+
+        const next = sinon.spy()
+
         const logout_service_stub = sinon.stub(authService,'logoutService')
 
         await logoutController(req,res,next)
