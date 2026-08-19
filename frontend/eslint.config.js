@@ -21,7 +21,7 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
-   {
+  {
     files: ['**/*.test.jsx', '**/*.test.js'],
     languageOptions: {
         globals: {
@@ -35,6 +35,14 @@ export default defineConfig([
     rules: {
       ...jestDom.configs.recommended.rules,
       ...testingLibrary.configs.react.rules
+    }
+  },
+  {
+    files: ['jest.setup.js'],
+    languageOptions: {
+        globals: {
+            ...globals.node
+        }
     }
   }
 ])
