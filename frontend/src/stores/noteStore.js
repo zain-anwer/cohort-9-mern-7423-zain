@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { createNote, deleteNote, updateNote, getNote, getAllNotes } from '../services/noteService.js'
 
+let latestRequestId = 0
+
 const useNoteStore = create((set,get) => ({
     
     notes: [],
@@ -65,16 +67,22 @@ const useNoteStore = create((set,get) => ({
 
     getAllNotes: async() => {
         
+        const requestId = ++latestRequestId
         set({error: null})
 
         try{
             const res = await getAllNotes()
-            set({notes: res.data})
+            if (requestId === latestRequestId) {
+               
+                set({notes: res.data})
+            }
         }
         catch(err)
-        {
-            set({error: err.response?.data?.message || 'Notes Retrieval Failed'})
-            throw err
+        { 
+            if (requestId === latestRequestId) {
+                set({error: err.response?.data?.message || 'Notes Retrieval Failed'})
+                throw err
+            }
         }
     }
 }))
