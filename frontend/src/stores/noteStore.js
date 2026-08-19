@@ -54,7 +54,7 @@ const useNoteStore = create((set,get) => ({
         
         try{
             const res = await getNote(note_id)
-            return res.data.note
+            return res.data
         }
         catch(err)
         {
@@ -69,7 +69,7 @@ const useNoteStore = create((set,get) => ({
 
         try{
             const res = await getAllNotes()
-            set({notes: res.data.notes})
+            set({notes: res.data})
         }
         catch(err)
         {

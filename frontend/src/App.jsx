@@ -18,7 +18,7 @@ const App = () => {
         <Route path='/dashboard' element={<Dashboard/>}/>
         <Route path='/dashboard/notes/:id' element={<NoteEditor/>}/>
         
-        /* adding replace swaps history of navigating to '/' with '/dashboard' */
+        { /* adding replace swaps history of navigating to '/' with '/dashboard' */ }
         <Route path='/' element={<Navigate to='/dashboard' replace/>}/>
         <Route path='/profile' element={<UserProfile/>}/>
       </Route>
