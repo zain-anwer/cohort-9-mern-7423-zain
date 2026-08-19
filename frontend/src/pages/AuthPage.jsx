@@ -1,0 +1,136 @@
+import { useState } from 'react' 
+import toast from 'react-hot-toast' 
+import useAuthStore from '../stores/authStore' 
+import { useNavigate } from 'react-router-dom' 
+import { LoaderCircle } from 'lucide-react' 
+ 
+export const AuthPage = () => { 
+ 
+    const navigate = useNavigate() 
+    const signin = useAuthStore((state) => state.signin) 
+    const signup = useAuthStore((state) => state.signup) 
+    const isLoading = useAuthStore((state) => state.isLoading) 
+ 
+    /* component specific states to build user object for api call :) */ 
+    const [isSigninPage,setIsSigninPage] = useState(true) 
+    const [name,setName] = useState("") 
+    const [email,setEmail] = useState("") 
+    const [password,setPassword] = useState("") 
+ 
+    const handleName = (e) => { 
+        setName(e.target.value) 
+    } 
+    const handleEmail = (e) => { 
+        setEmail(e.target.value) 
+    } 
+    const handlePassword = (e) => { 
+        setPassword(e.target.value) 
+    } 
+ 
+    const handleSubmit = async (e) => { 
+         
+        /* this prevent's the page from reloading immediately */ 
+        /* hence important cause otherwise we won't be able to make an API call */ 
+        e.preventDefault() 
+ 
+        /* normalization cause I will be empty strings with spaces will otherwise be truthy */ 
+        /* can't simply use  */ 
+        const user_name = name.trim() 
+        const user_email = email.trim() 
+        const user_password = password.trim() 
+ 
+        if (!user_email || !user_password) 
+            toast.error('All Fields Required') 
+        else if (!isSigninPage && !user_name) 
+            toast.error('All Fields Required') 
+        else { 
+            try { 
+                if (!isSigninPage) 
+                    await signup({name:user_name,email:user_email,password:user_password}) 
+                else 
+                    await signin({email:user_email,password:user_password}) 
+                toast.success(`${isSigninPage? 'signin':'signup'} successful`) 
+                navigate('/dashboard') 
+            } 
+            catch(err) { 
+                toast.error(err.response?.data?.message || 'something went wrong') 
+            } 
+        } 
+    } 
+ 
+    return ( 
+        <div className="relative min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 overflow-hidden"> 
+
+            <img 
+                src="/doodle-bg.png" 
+                alt="" 
+                className="absolute inset-0 h-full w-full object-cover pointer-events-none" 
+            />
+
+            <div className="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8"> 
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5"> 
+                    { 
+                        !isSigninPage ? 
+                        ( 
+                        <> 
+                            <div className="flex flex-col gap-1"> 
+                                <label className="text-sm font-medium text-gray-700">Name</label> 
+                                <input type='text' value={name} onChange={handleName}  
+                                placeholder='Rene Descartes' className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" /> 
+                            </div> 
+                        </> 
+                        ) : <></>     
+                    } 
+                    <div className="flex flex-col gap-1"> 
+                        <label className="text-sm font-medium text-gray-700">Email</label> 
+                        <input type='email' value={email} onChange={handleEmail} placeholder='rene.descartes@gmail.com' className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"/> 
+                    </div> 
+                    <div className="flex flex-col gap-1"> 
+                        <label className="text-sm font-medium text-gray-700">Password</label> 
+                        <input type='password' value={password} onChange={handlePassword} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"/> 
+                    </div> 
+                    <button type="submit" disabled={isLoading} className="mt-1 flex w-full items-center justify-center rounded-md bg-gray-900 px-4 py-2.5 text-sm sm:text-base font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"> 
+                    { 
+                        isLoading ? 
+                        (<LoaderCircle className='animate-spin' size={18}/>) 
+                        : 
+                        (isSigninPage? "signin" : "signup") 
+                    } 
+                    </button> 
+                 
+                    { 
+                        isSigninPage ? ( 
+                            <p className="text-center text-sm text-gray-500"> 
+                                Don't have an account?{" "} 
+                                <a 
+                                href="#" 
+                                onClick={(event) => { 
+                                    event.preventDefault(); 
+                                    setIsSigninPage(false); 
+                                }} 
+                                className="font-medium text-gray-900 hover:underline" 
+                                > 
+                                sign up 
+                                </a> 
+                            </p> 
+                        ) : ( 
+                            <p className="text-center text-sm text-gray-500"> 
+                                Already have an account?{" "} 
+                                <a 
+                                href="#" 
+                                onClick={(event) => { 
+                                    event.preventDefault(); 
+                                    setIsSigninPage(true); 
+                                }} 
+                                className="font-medium text-gray-900 hover:underline" 
+                                > 
+                                sign in 
+                                </a> 
+                            </p> 
+                        ) 
+                    } 
+                </form> 
+            </div> 
+        </div> 
+    ) 
+}
