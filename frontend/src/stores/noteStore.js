@@ -86,3 +86,5 @@ const useNoteStore = create((set,get) => ({
         }
     }
 }))
+
+export default useNoteStore

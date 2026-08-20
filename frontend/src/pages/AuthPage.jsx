@@ -2,7 +2,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast' 
 import useAuthStore from '../stores/authStore' 
 import { useNavigate } from 'react-router-dom' 
-import { LoaderCircle } from 'lucide-react' 
+import { LoaderCircle, NotebookPen } from 'lucide-react' 
  
 export const AuthPage = () => { 
  
@@ -68,6 +68,14 @@ export const AuthPage = () => {
             />
 
             <div className="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8"> 
+
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <NotebookPen size={24} className="text-gray-900" />
+                    <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+                        Scribble
+                    </h1>
+                </div>
+
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5"> 
                     { 
                         !isSigninPage ? 
@@ -106,7 +114,10 @@ export const AuthPage = () => {
                                 href="#" 
                                 onClick={(event) => { 
                                     event.preventDefault(); 
-                                    setIsSigninPage(false); 
+                                    setIsSigninPage(false);
+                                    setEmail("")
+                                    setPassword("")
+                                    setName("")  
                                 }} 
                                 className="font-medium text-gray-900 hover:underline" 
                                 > 
@@ -120,7 +131,10 @@ export const AuthPage = () => {
                                 href="#" 
                                 onClick={(event) => { 
                                     event.preventDefault(); 
-                                    setIsSigninPage(true); 
+                                    setIsSigninPage(true);
+                                    setEmail("")
+                                    setPassword("")
+                                    setName("") 
                                 }} 
                                 className="font-medium text-gray-900 hover:underline" 
                                 > 
