@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react"
+import { CircleUserRound, CircleX, StickyNotePlus } from "lucide-react"
+import { NoteEditor } from "../components/NoteEditor"
+import { NoteCard } from "../components/NoteCard"
+import { Profile } from "../components/Profile"
+import toast from "react-hot-toast"
+
 import useAuthStore from "../stores/authStore"
 import useNoteStore from "../stores/noteStore"
-import { StickyNotePlus } from "lucide-react"
 
 /* this helper function will remove html tags from rich text produced by quill */
 const stripHtml = (html) => {
@@ -10,51 +15,34 @@ const stripHtml = (html) => {
     return temp.textContent || temp.innerText || ''
 }
 
-
-const NoteCard = ({title,content,onClick}) => {
-    return (
-        <div onClick={onClick}>
-            <h2>{title}</h2>
-            <p>{content}</p>
-        </div>
-    )
-}
-const Profile = ({name,email}) => {
-    const logout = useAuthStore((state) => state.logout)
-    return (
-        <>
-            <h3>Name: {name}</h3>
-            <h3>Email: {email}</h3>
-            <button onClick={logout}>logout</button>
-        </>
-    )
-}
-const NoteEditor = () => {}
-
 export const Dashboard = () => {
 
     const user = useAuthStore((state) => state.user)
     const notes = useNoteStore((state) => state.notes)
     const getAllNotes = useNoteStore((state) => state.getAllNotes)
     const createNote = useNoteStore((state) => state.createNote)
+    const updateNote = useNoteStore((state) => state.updateNote)
+    const deleteNote = useNoteStore((state) => state.deleteNote)
 
     const [filteredNotes,setFilteredNotes] = useState(notes)
     const [query,setQuery] = useState("")
     const [selectedNote,setSelectedNote] = useState(null)
-    /* this state will control the appearance of the editor modal */
-    const [isEditorOpen,setIsEditorOpen] = useState(false)
-    /* and this state will control the appearance of the profile modal */
-    const [isProfileOpen,setIsProfileOpen] = useState(false)
 
-    /* these are used to run certain functions at the time the component renders */
-    /* it takes a function and a dependency array that reruns the hook if the value of something in it changes */
+    /* states to manage the note editor modall */
+
+    const [isEditorOpen,setIsEditorOpen] = useState(false)
+    const [isProfileOpen,setIsProfileOpen] = useState(false)
+    const [isReadOnly,setIsReadOnly] = useState(false)
+
+    /* runs on every rerender --- useful cause notes will be [] when component mounts */
     useEffect(() => {
         getAllNotes()
     },[])
 
     /* this is to keep updating results even when note list changes */
     useEffect(() => {
-        const trimmedQuery = query.trim()
+        
+        const trimmedQuery = query.trim().toLowerCase()
 
         if (trimmedQuery) {
             const result = notes.filter((note) => {
@@ -62,36 +50,75 @@ export const Dashboard = () => {
                 const normalized_content = stripHtml(note.content).toLowerCase()
 
                 return (
-                    normalized_content.includes(trimmedQuery.toLowerCase()) ||
-                    normalized_title.includes(trimmedQuery.toLowerCase())
+                    normalized_content.includes(trimmedQuery) ||
+                    normalized_title.includes(trimmedQuery)
                 )
             })
 
             setFilteredNotes(result)
         }
+        /* trimmed query is empty string so just set it to all notes */
         else {
             setFilteredNotes(notes)
         }
     }, [notes])
 
+    /* should open modal in read mode by default but can be switched to write mode */
     const handleNoteClick = (note) => {
         setIsEditorOpen(true)
         setSelectedNote(note)
+        setIsReadOnly(true)
     }
 
-    const handleNoteCreation = () => {
-        /* should open a modal where you could write a note with autosave */
+    /* should create an empty note and open modal in write mode regularly updating value */
+    const handleNoteCreation = async() => {
+        try {
+            const created_note = await createNote({title:"Untitled",content:""})
+            toast.success('created and opened a new note successfully')
+            
+            setIsReadOnly(false)
+            setSelectedNote(created_note)
+            setIsEditorOpen(true)
+        }
+        catch(error) {
+            toast.error(error.response?.data?.message || 'something went wrong')
+        }
     }
 
+    /* auto save handler that is called after a successful 1 second timeoutt */
+    const handleNoteUpdate = async(note_id,note) => {
+        try {
+            const updated_note = await updateNote(note_id,note)
+            setSelectedNote(updated_note)
+        }
+        catch (error) {
+            toast.error(error.response?.data?.message || 'something went wrong')
+        } 
+    }
+
+    const handleNoteDeletion = async(note_id) => {
+        try {
+            await deleteNote(note_id)
+            setIsEditorOpen(false)
+            setSelectedNote(null)
+            toast.success('Note Deletion Successful')
+        }
+        catch (error) {
+            toast.error(error.response?.data?.message || 'something went wrong')
+        }
+    } 
+
+    /* profile handler -- when someone clicks on profile button */
     const handleProfile = () => {
         /* should open a modal with user details probably an image and a logout button */
         setIsProfileOpen(true)
     }
 
+    /* search handler -- fires when search bar record an event */
     const handleQuery = (e) => {
         setQuery(e.target.value)
         /* react state changes are asynchronous hence use value directly */
-        const trimmedQuery = e.target.value.trim()
+        const trimmedQuery = e.target.value.trim().toLowerCase()
 
         if (trimmedQuery) {
             const result = notes.filter((note) => {
@@ -110,16 +137,47 @@ export const Dashboard = () => {
 
     return (
        <>
-            <h1>Scribble Dashboard</h1>
-            <button onClick={handleProfile}>profile</button>
-            <input type="search" value={query} onChange={handleQuery}/>
+            <div className="min-h-screen bg-gray-50 pb-24 sm:pb-8">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+                    <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">Scribble Dashboard</h1>
+                    <button onClick={handleProfile} className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">profile<CircleUserRound className="h-5 w-5"/></button>
+                </div>
+                <div className="px-4 pt-4 sm:px-6 lg:px-8">
+                    <input type="search" value={query} onChange={handleQuery} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 sm:max-w-sm sm:text-base"/>
+                </div>
+                <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-6 lg:grid-cols-3 lg:p-8 xl:grid-cols-4">
+                    {
+                        filteredNotes.map((note) => 
+                            <NoteCard onClick={() => handleNoteClick(note)} key={note._id} title={note.title} content={note.content}/>)
+                    }
+                </div>
+                <button onClick={handleNoteCreation} className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
+                    <StickyNotePlus className="h-5 w-5"/>
+                </button>
+            </div>
             {
-                filteredNotes.map((note) => 
-                    <NoteCard onClick={() => handleNoteClick(note)} key={note._id} title={note.title} content={note.content}/>)
+                isEditorOpen && 
+                (
+                    <NoteEditor
+                        note={selectedNote}
+                        onSave={handleNoteUpdate}
+                        onDelete={handleNoteDeletion}
+                        onClose= {() => 
+                        {
+                            setIsEditorOpen(false)
+                            setSelectedNote(null)
+                        }}
+                        isReadOnly={isReadOnly}
+                        setIsReadOnly={setIsReadOnly}
+                    />
+                ) 
             }
-            <button onClick={handleNoteCreation}>
-                <StickyNotePlus/>
-            </button>
+            {
+                isProfileOpen && <Profile 
+                                    name={user.name} 
+                                    email={email} 
+                                    onClose={() => {setIsProfileOpen(false)}}/>
+            }
        </>
     )
 }
