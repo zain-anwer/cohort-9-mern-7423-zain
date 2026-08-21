@@ -1,1 +1,2 @@
-@import "tailwindcss"
+@import "tailwindcss";
+@import 'react-quill-new/dist/quill.snow.css';

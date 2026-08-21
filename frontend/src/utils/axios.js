@@ -24,10 +24,14 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     response => response,
     error => {
-        if (error.response?.status === 401)
+        const isAuthEndpoint = error.config?.url?.includes('/auth/signin') 
+                            || error.config?.url?.includes('/auth/signup')
+        
+        if (error.response?.status === 401 && !isAuthEndpoint)
         {
             localStorage.removeItem('access_token')
-            window.location.assign('/signin')   
+            localStorage.removeItem('user')
+            window.location.assign('/signin')
         }
         return Promise.reject(error)
     }

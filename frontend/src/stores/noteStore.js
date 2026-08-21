@@ -8,13 +8,14 @@ const useNoteStore = create((set,get) => ({
     notes: [],
     error: null,
     
-    addNote: async(note) => {
+    createNote: async(note) => {
 
         set({error: null})
 
         try {
             const res = await createNote(note)
             set({notes: [...get().notes,res.data.created_note]})
+            return res.data.created_note
         }
         catch(err) {
             set({error: err.response?.data?.message || 'Note Creation Failed'})
@@ -28,7 +29,8 @@ const useNoteStore = create((set,get) => ({
         
         try {
             const res = await updateNote(note_id,updated_note) 
-            set({notes: get().notes.map((note) => (note.id === note_id) ? res.data.updated_note : note)})
+            set({notes: get().notes.map((note) => (note._id === note_id) ? res.data.updated_note : note)})
+            return res.data.updated_note
         }
         catch(err) {
             set({error: err.response?.data?.message || 'Note Updation Failed'})
@@ -36,13 +38,13 @@ const useNoteStore = create((set,get) => ({
         }
     },
 
-    removeNote: async(note_id) => {
+    deleteNote: async(note_id) => {
 
         set({error: null})
 
         try {
             await deleteNote(note_id)
-            set({notes: get().notes.filter((note) => note.id !== note_id)})
+            set({notes: get().notes.filter((note) => note._id !== note_id)})
         }
         catch(err) {
             set({error: err.response?.data?.message || 'Note Deletion Failed'})
@@ -86,3 +88,5 @@ const useNoteStore = create((set,get) => ({
         }
     }
 }))
+
+export default useNoteStore
