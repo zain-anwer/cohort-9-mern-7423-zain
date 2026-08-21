@@ -36,8 +36,16 @@ export const Dashboard = () => {
 
     /* runs on every rerender --- useful cause notes will be [] when component mounts */
     useEffect(() => {
-        getAllNotes()
-    },[])
+        const loadNotes = async () => {
+            try {
+                await getAllNotes()
+            }
+            catch(error) {
+                toast.error(error.response?.data?.message || 'failed to load notes')
+            }
+        }
+        loadNotes()
+    },[])    
 
     /* this is to keep updating results even when note list changes */
     useEffect(() => {
@@ -92,7 +100,7 @@ export const Dashboard = () => {
             setSelectedNote(updated_note)
         }
         catch (error) {
-            toast.error(error.response?.data?.message || 'something went wrong')
+            throw error
         } 
     }
 

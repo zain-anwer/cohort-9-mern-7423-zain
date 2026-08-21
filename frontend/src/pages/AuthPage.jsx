@@ -39,7 +39,7 @@ export const AuthPage = () => {
         /* can't simply use  */ 
         const user_name = name.trim() 
         const user_email = email.trim() 
-        const user_password = password.trim() 
+        const user_password = password
  
         if (!user_email || !user_password) 
             toast.error('All Fields Required') 
