@@ -49,7 +49,7 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
     },[title,content,isReadOnly,note])
 
     /* handlerss */
-    
+
     const handleTitleChange = (e) => {
         setTitle(e.target.value)
     }
@@ -85,7 +85,7 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
                         <button onClick={handleDeletion} className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5"/></button>
                     </div>
                 </div>
-                <input type='text' value={title} onChange={handleTitleChange} className="mb-3 w-full border-b border-gray-200 pb-2 text-lg font-medium text-gray-900 focus:border-gray-900 focus:outline-none sm:text-xl"/>
+                <input type='text' value={title} readOnly={isReadOnly} onChange={handleTitleChange} className={`mb-3 w-full border-b border-gray-200 pb-2 text-lg font-medium text-gray-900 sm:text-xl ${isReadOnly ? '' : 'focus:border-gray-900 focus:outline-none'}`}/>
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     <ReactQuill
                         value={content}
