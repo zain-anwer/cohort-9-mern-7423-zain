@@ -30,7 +30,8 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401 && !isAuthEndpoint)
         {
             localStorage.removeItem('access_token')
-            window.location.assign('/signin')   
+            localStorage.removeItem('user')
+            window.location.assign('/signin')
         }
         return Promise.reject(error)
     }

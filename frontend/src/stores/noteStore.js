@@ -29,7 +29,7 @@ const useNoteStore = create((set,get) => ({
         
         try {
             const res = await updateNote(note_id,updated_note) 
-            set({notes: get().notes.map((note) => (note.id === note_id) ? res.data.updated_note : note)})
+            set({notes: get().notes.map((note) => (note._id === note_id) ? res.data.updated_note : note)})
             return res.data.updated_note
         }
         catch(err) {
@@ -38,13 +38,13 @@ const useNoteStore = create((set,get) => ({
         }
     },
 
-    removeNote: async(note_id) => {
+    deleteNote: async(note_id) => {
 
         set({error: null})
 
         try {
             await deleteNote(note_id)
-            set({notes: get().notes.filter((note) => note.id !== note_id)})
+            set({notes: get().notes.filter((note) => note._id !== note_id)})
         }
         catch(err) {
             set({error: err.response?.data?.message || 'Note Deletion Failed'})

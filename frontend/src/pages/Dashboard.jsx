@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { CircleUserRound, CircleX, StickyNotePlus } from "lucide-react"
+import { CircleUserRound , StickyNotePlus, Search } from "lucide-react"
 import { NoteEditor } from "../components/NoteEditor"
 import { NoteCard } from "../components/NoteCard"
 import { Profile } from "../components/Profile"
@@ -61,7 +61,7 @@ export const Dashboard = () => {
         else {
             setFilteredNotes(notes)
         }
-    }, [notes])
+    }, [notes,query])
 
     /* should open modal in read mode by default but can be switched to write mode */
     const handleNoteClick = (note) => {
@@ -137,13 +137,29 @@ export const Dashboard = () => {
 
     return (
        <>
-            <div className="min-h-screen bg-gray-50 pb-24 sm:pb-8">
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+            <div
+                className="min-h-screen bg-gray-50 pb-24 sm:pb-8"
+                style={{
+                    backgroundImage: "url('/dashboard-bg.png')",
+                    backgroundRepeat: "repeat",
+                    backgroundSize: "900px auto",
+                }}
+            >
+                <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
                     <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">Scribble Dashboard</h1>
-                    <button onClick={handleProfile} className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">profile<CircleUserRound className="h-5 w-5"/></button>
-                </div>
-                <div className="px-4 pt-4 sm:px-6 lg:px-8">
-                    <input type="search" value={query} onChange={handleQuery} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 sm:max-w-sm sm:text-base"/>
+                    <div className="ml-auto flex items-center gap-4">
+                        <div className="relative w-48 sm:w-64">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"/>
+                            <input
+                                type="search"
+                                value={query}
+                                onChange={handleQuery}
+                                placeholder="Search notes"
+                                className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 sm:text-base"
+                            />
+                        </div>
+                        <button onClick={handleProfile} className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">profile<CircleUserRound className="h-5 w-5"/></button>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-6 lg:grid-cols-3 lg:p-8 xl:grid-cols-4">
                     {
@@ -175,7 +191,7 @@ export const Dashboard = () => {
             {
                 isProfileOpen && <Profile 
                                     name={user.name} 
-                                    email={email} 
+                                    email={user.email} 
                                     onClose={() => {setIsProfileOpen(false)}}/>
             }
        </>
