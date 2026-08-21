@@ -167,7 +167,7 @@ export const Dashboard = () => {
                             <NoteCard onClick={() => handleNoteClick(note)} key={note._id} title={note.title} content={note.content}/>)
                     }
                 </div>
-                <button onClick={handleNoteCreation} className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
+                <button onClick={handleNoteCreation} aria-label="Create note" className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
                     <StickyNotePlus className="h-5 w-5"/>
                 </button>
             </div>

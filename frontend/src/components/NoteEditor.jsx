@@ -78,18 +78,18 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
             <div className="flex h-full w-full flex-col bg-white p-4 sm:h-auto sm:max-h-[85vh] sm:w-[90%] sm:max-w-2xl sm:rounded-xl sm:p-6">
                 <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <button onClick={handleClose} className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"><CircleX className="h-5 w-5"/></button>
+                        <button onClick={handleClose} aria-label="Close" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"><CircleX className="h-5 w-5"/></button>
                         <span className="text-xs text-gray-400">{isSaving}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {
                             isReadOnly && (
-                                <button onClick={handleModeChange} className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                                <button onClick={handleModeChange} aria-label="Edit note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
                                     <Pencil className="h-4 w-4"/>
                                 </button>
                             )
                         }
-                        <button onClick={handleDeletion} className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5"/></button>
+                        <button onClick={handleDeletion} aria-label="Delete note" className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5"/></button>
                     </div>
                 </div>
                 <input type='text' value={title} readOnly={isReadOnly} onChange={handleTitleChange} className={`mb-3 w-full border-b border-gray-200 pb-2 text-lg font-medium text-gray-900 sm:text-xl ${isReadOnly ? '' : 'focus:border-gray-900 focus:outline-none'}`}/>

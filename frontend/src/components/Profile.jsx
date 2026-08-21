@@ -20,7 +20,7 @@ export const Profile = ({name,email,onClose}) => {
             <div className="w-full rounded-t-xl bg-white p-6 sm:w-[90%] sm:max-w-sm sm:rounded-xl">
 
                 <div className="mb-4 flex justify-end">
-                    <button onClick={onClose} className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                    <button onClick={onClose} aria-label="Close" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
                         <CircleX className="h-5 w-5"/>
                     </button>
                 </div>
