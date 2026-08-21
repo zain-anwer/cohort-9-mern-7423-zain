@@ -1,18 +1,20 @@
 import { useState } from 'react' 
 import toast from 'react-hot-toast' 
 import useAuthStore from '../stores/authStore' 
-import { useNavigate } from 'react-router-dom' 
+import { useLocation, useNavigate } from 'react-router-dom' 
 import { LoaderCircle, NotebookPen } from 'lucide-react' 
  
 export const AuthPage = () => { 
  
     const navigate = useNavigate() 
+    const location = useLocation()
+
     const signin = useAuthStore((state) => state.signin) 
     const signup = useAuthStore((state) => state.signup) 
     const isLoading = useAuthStore((state) => state.isLoading) 
  
     /* component specific states to build user object for api call :) */ 
-    const [isSigninPage,setIsSigninPage] = useState(true) 
+    const isSigninPage = location.pathname === '/signin' 
     const [name,setName] = useState("") 
     const [email,setEmail] = useState("") 
     const [password,setPassword] = useState("") 
@@ -114,13 +116,12 @@ export const AuthPage = () => {
                                 href="#" 
                                 onClick={(event) => { 
                                     event.preventDefault(); 
-                                    setIsSigninPage(false);
+                                    navigate('/signup');
                                     setEmail("")
                                     setPassword("")
                                     setName("")  
                                 }} 
-                                className="font-medium text-gray-900 hover:underline" 
-                                > 
+                                className="font-medium text-gray-900 hover:underline"> 
                                 sign up 
                                 </a> 
                             </p> 
@@ -131,13 +132,12 @@ export const AuthPage = () => {
                                 href="#" 
                                 onClick={(event) => { 
                                     event.preventDefault(); 
-                                    setIsSigninPage(true);
+                                    navigate('/signin');
                                     setEmail("")
                                     setPassword("")
                                     setName("") 
                                 }} 
-                                className="font-medium text-gray-900 hover:underline" 
-                                > 
+                                className="font-medium text-gray-900 hover:underline"> 
                                 sign in 
                                 </a> 
                             </p> 
