@@ -1,4 +1,4 @@
-import { useState , useEffect } from 'react'
+import { useState , useRef, useEffect } from 'react'
 import { CircleX, Pencil, Trash2 } from 'lucide-react'
 import ReactQuill from 'react-quill-new'
 import toast from 'react-hot-toast'
@@ -26,8 +26,10 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
     },[note._id])
 
     /* this is to make it auto save after user inactivity and mismatch for a full second */
+
+    const saveIdRef = useRef(0)
+
     useEffect(() => {
-        
         if (isReadOnly) 
             return
         if (title == note.title && content == note.content)
@@ -35,12 +37,17 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
 
         setIsSaving("saving...")
         const timeout = setTimeout(async() => {
+            const thisSaveId = ++saveIdRef.current
             try {
-                await onSave(note._id,{...note,title:title,content:content})
-                setIsSaving("saved")
+                const updated = await onSave(note._id,{...note,title:title,content:content})
+                if (thisSaveId === saveIdRef.current) {
+                    setIsSaving("saved")
+                }
             }
             catch(error) {
-                toast.error(error.response?.date?.message || "something went wrong")
+                if (thisSaveId === saveIdRef.current) {
+                    toast.error(error.response?.data?.message || "something went wrong")
+                }
             }
         },1000)
 
