@@ -55,6 +55,12 @@ export const updateNoteController = async (req,res,next) =>
             throw err
         }
 
+        if (version === undefined || version === null || typeof version !== 'number') {
+            const err = new Error('A valid version is required to update this note')
+            err.statusCode = 400
+            throw err
+        }
+
         const updated_note = await noteService.updateNoteService(req.params.id,req.user.id,{title,content,is_pinned,is_binned,is_archived,version})
         return res.status(200).json({
             'Message' : 'Note Updated Successfully',

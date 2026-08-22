@@ -22,9 +22,29 @@ const assertValidId = (note_id) => {
     }
 }
 
+const normalizeMongoWriteError = (err) => {
+    if (err.name === 'ValidationError') {
+        const messages = Object.values(err.errors).map(e => e.message)
+        const normalized = new Error(messages.join(', '))
+        normalized.statusCode = 400
+        return normalized
+    }
+    if (err.code === 11000) {
+        const normalized = new Error('A note with this value already exists')
+        normalized.statusCode = 409
+        return normalized
+    }
+    return err
+}
+
 const createNoteService = async (note_object) =>
 {  
-    const note = await notesModel.create(note_object)
+    let note
+    try {
+        note = await notesModel.create(note_object)
+    } catch (err) {
+        throw normalizeMongoWriteError(err)
+    }
     noteEvent.emit('create:note',{user_id:note.user_id,created_note:note})
     return note
 }
@@ -64,21 +84,26 @@ const updateNoteService = async (note_id,user_id,note_object) => {
 
     const version = note_object.version
     delete note_object.version
-    const updated_note = await notesModel.findOneAndUpdate(
-        {_id: note_id, user_id: user_id, version: version},
-        {...note_object, $inc:{version:1}},
-        
-        /* new: true ensures that the updated record/document is returned */
-        /* runValidators: true ensures that schema validation is run on updated document */
-        {new: true, runValidators: true}
-    )
+    let updated_note
+    try {
+        updated_note = await notesModel.findOneAndUpdate(
+            {_id: note_id, user_id: user_id, version: version},
+            {...note_object, $inc:{version:1}},
+            
+            /* new: true ensures that the updated record/document is returned */
+            /* runValidators: true ensures that schema validation is run on updated document */
+            {new: true, runValidators: true}
+        )
+    } catch (err) {
+        throw normalizeMongoWriteError(err)
+    }
 
     if (updated_note)
         console.log('Updation Successful')
     else
     {
-        const err = new Error('Note Not Found')
-        err.statusCode = 404
+        const err = new Error('Someone changed this note - Please refresh')
+        err.statusCode = 409
         throw err
     }
 
