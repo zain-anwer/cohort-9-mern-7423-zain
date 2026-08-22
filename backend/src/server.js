@@ -1,6 +1,8 @@
+import http from 'http'
 import app from './app.js'
 import dotenv from 'dotenv'
 import connectDB from './configs/db.js'
+import { initializeSocket } from './socket/socket.js'
 dotenv.config()
 
 let PORT
@@ -16,7 +18,9 @@ catch(err)
     process.exit(1)
 }
 
-const server = app.listen(PORT,() => { console.log(`Server listening at port ${PORT}`) })
+const server = http.createServer(app)
+const io = initializeSocket(server)
+
 
 server.on('error', (err) => {
     if (err.code == 'EADDRINUSE')
