@@ -1,5 +1,16 @@
 import notesModel from "../models/notes.model.js"
 import mongoose from "mongoose"
+import { convert } from "html-to-text"
+
+const stripHtml = (html = '') => {
+  return convert(html, {
+    wordwrap: false,
+    selectors: [
+      { selector: 'a', options: { ignoreHref: true } },
+      { selector: 'img', format: 'skip' }               
+    ]
+  });
+}
 
 const assertValidId = (note_id) => {
     if (!mongoose.Types.ObjectId.isValid(note_id))
@@ -21,8 +32,36 @@ const updateNoteService = async (note_id,user_id,note_object) => {
     
     assertValidId(note_id)
 
+    const existing_note = await notesModel.findOne({_id: note_id,user_id: user_id})
+
+    if (!existing_note) {
+        const err = new Error('Note Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
+    if (note_object.is_pinned === true && existing_note.is_pinned === false) 
+        existing_note.pinned_at = new Date()
+    else if (note_object.is_pinned === false)
+        existing_note.pinned_at = null
+    
+    if (note_object.is_binned === true && existing_note.is_binned === false)
+        existing_note.binned_at = new Date()
+    else if (note_object.is_binned === false)
+        existing_note.binned_at = null
+    
+    if (note_object.is_archived === true && existing_note.is_archived === false)
+        existing_note.archived_at = new Date()
+    else if (note_object.is_archived === false)
+        existing_note.archived_at = null
+
+    note_object = {...note_object,
+                    pinned_at: existing_note.pinned_at,
+                    binned_at: existing_note.binned_at,
+                    archived_at: existing_note.archived_at
+    }
+
     const updated_note = await notesModel.findOneAndUpdate(
-        
         {_id: note_id, user_id: user_id},
         note_object,
         
@@ -39,8 +78,7 @@ const updateNoteService = async (note_id,user_id,note_object) => {
         err.statusCode = 404
         throw err
     }
-
-    console.log('Note Updated')
+    
     return updated_note
 }
 
@@ -87,10 +125,25 @@ const getAllNotesService = async (user_id) => {
     return notes
 }
 
+const exportNoteService = async (note_id,user_id) => {
+
+    assertValidId(note_id)
+    const note = await notesModel.findOne({_id:note_id,user_id:user_id})
+    
+    if (!note) {
+        const error = new Error('No Note Found')
+        error.statusCode = 404
+        throw error
+    }
+    
+    return {title:note.title,content:stripHtml(note.content)}
+}
+
 export default {
     createNoteService,
     updateNoteService,
     deleteNoteService,
     getNoteService,
-    getAllNotesService
+    getAllNotesService,
+    exportNoteService
 }
