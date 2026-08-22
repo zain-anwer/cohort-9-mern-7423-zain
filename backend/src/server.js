@@ -31,3 +31,7 @@ server.on('error', (err) => {
         console.log(`Server failed to start: ${err}`)
     process.exit(1)
 })
+
+server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`)
+})

@@ -62,9 +62,11 @@ const updateNoteService = async (note_id,user_id,note_object) => {
                     archived_at: existing_note.archived_at
     }
 
+    const version = note_object.version
+    delete note_object.version
     const updated_note = await notesModel.findOneAndUpdate(
-        {_id: note_id, user_id: user_id, version: note_object.version},
-        {note_object, $inc:{version:1}},
+        {_id: note_id, user_id: user_id, version: version},
+        {...note_object, $inc:{version:1}},
         
         /* new: true ensures that the updated record/document is returned */
         /* runValidators: true ensures that schema validation is run on updated document */
