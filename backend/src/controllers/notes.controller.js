@@ -45,7 +45,7 @@ export const updateNoteController = async (req,res,next) =>
         req.log.info({ noteId: req.params.id }, 'updating note')
  
         /* extracting only title and content here as well so that user_id can't be overridden */
-        const {title,content,is_pinned,is_binned,is_archived} = req.body ?? {}
+        const {title,content,is_pinned,is_binned,is_archived,version} = req.body ?? {}
 
         if (title === undefined && content === undefined && is_pinned === undefined
             && is_binned === undefined && is_archived === undefined) 
@@ -55,7 +55,7 @@ export const updateNoteController = async (req,res,next) =>
             throw err
         }
 
-        const updated_note = await noteService.updateNoteService(req.params.id,req.user.id,{title,content,is_pinned,is_binned,is_archived})
+        const updated_note = await noteService.updateNoteService(req.params.id,req.user.id,{title,content,is_pinned,is_binned,is_archived,version})
         return res.status(200).json({
             'Message' : 'Note Updated Successfully',
             'updated_note' : updated_note

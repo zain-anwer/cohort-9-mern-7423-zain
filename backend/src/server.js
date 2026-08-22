@@ -3,6 +3,8 @@ import app from './app.js'
 import dotenv from 'dotenv'
 import connectDB from './configs/db.js'
 import { initializeSocket } from './socket/socket.js'
+import './socket/handlers/note.broadcast.handler.js'
+
 dotenv.config()
 
 let PORT

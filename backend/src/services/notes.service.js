@@ -1,4 +1,5 @@
 import notesModel from "../models/notes.model.js"
+import { noteEvent } from "../events/note.event.js"
 import mongoose from "mongoose"
 import { convert } from "html-to-text"
 
@@ -24,7 +25,7 @@ const assertValidId = (note_id) => {
 const createNoteService = async (note_object) =>
 {  
     const note = await notesModel.create(note_object)
-    console.log('Note Added')
+    noteEvent.emit('create:note',{user_id:note.user_id,created_note:note})
     return note
 }
 
@@ -62,8 +63,8 @@ const updateNoteService = async (note_id,user_id,note_object) => {
     }
 
     const updated_note = await notesModel.findOneAndUpdate(
-        {_id: note_id, user_id: user_id},
-        note_object,
+        {_id: note_id, user_id: user_id, version: note_object.version},
+        {note_object, $inc:{version:1}},
         
         /* new: true ensures that the updated record/document is returned */
         /* runValidators: true ensures that schema validation is run on updated document */
@@ -78,7 +79,8 @@ const updateNoteService = async (note_id,user_id,note_object) => {
         err.statusCode = 404
         throw err
     }
-    
+
+    noteEvent.emit('update:note',{user_id:user_id,updated_note:updated_note})
     return updated_note
 }
 
@@ -92,6 +94,7 @@ const deleteNoteService = async (note_id,user_id) => {
     if (deleted_note)
     {
         console.log('Deletion Successful')
+        noteEvent.emit('delete:note',{user_id:user_id,note_id:note_id})
         return deleted_note
     }
     

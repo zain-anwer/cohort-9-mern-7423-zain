@@ -42,6 +42,10 @@ const notesSchema = new mongoose.Schema(
         archived_at: {
             type: Date,
             default: null
+        },
+        version: {
+            type: Number,
+            default: 1 
         }
     },
     {

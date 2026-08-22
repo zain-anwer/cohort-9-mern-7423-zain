@@ -1,5 +1,5 @@
 import { Server } from 'socket.io'
-import { socketMiddleware } from '../middleware/socket.middleware'
+import { socketMiddleware } from '../middleware/socket.middleware.js'
 
 let io = null
 
@@ -19,6 +19,7 @@ export const initializeSocket = (httpServer) => {
         }
         catch(error) {
             socket.emit('error',{message: 'Connection Setup Failed', code: 500})
+            socket.disconnect(true)
         }
     })
     return io
