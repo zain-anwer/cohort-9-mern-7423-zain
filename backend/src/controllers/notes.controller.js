@@ -125,10 +125,7 @@ export const exportNoteController = async (req,res,next) => {
         req.log.info({ noteId: req.params.id }, 'exporting note')
         const note = await noteService.exportNoteService(req.params.id,req.user.id)
         res.setHeader('Content-Type', 'text/plain')
-        res.setHeader(
-            `Content-Disposition`,
-            `attachment; filename="${note.title}.txt"`
-        )
+        res.attachment(`${note.title}.txt`)
         res.status(200).send(note.content)
     
     }
