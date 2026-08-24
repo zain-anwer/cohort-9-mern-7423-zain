@@ -4,8 +4,8 @@
 /* pin will just cause reordering in the dashboard view */
 
 
-import { useState, useEffect, useMemo } from "react"
-import { CircleUserRound , StickyNotePlus, Search, Files, Pin, Archive, Trash2 } from "lucide-react"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { CircleUserRound , StickyNotePlus, Search, Files, Pin, Archive, Trash2, Upload } from "lucide-react"
 import { NoteEditor } from "../components/NoteEditor"
 import { NoteCard } from "../components/NoteCard"
 import { Profile } from "../components/Profile"
@@ -30,6 +30,8 @@ export const Dashboard = () => {
     const createNote = useNoteStore((state) => state.createNote)
     const updateNote = useNoteStore((state) => state.updateNote)
     const deleteNote = useNoteStore((state) => state.deleteNote)
+    const exportNote = useNoteStore((state) => state.exportNote)
+    const importNote = useNoteStore((state) => state.importNote)
     const initSocketListeners = useNoteStore((state) => state.initSocketListeners)
     const cleanSocketListeners = useNoteStore((state) => state.cleanSocketListeners)
 
@@ -42,6 +44,8 @@ export const Dashboard = () => {
     const [isProfileOpen,setIsProfileOpen] = useState(false)
     const [isReadOnly,setIsReadOnly] = useState(false)
     const [view,setView] = useState('all')                      // all, binned, archived, pinned
+
+    const importInputRef = useRef(null)
     
     const filteredNotes = useMemo(() => {
         
@@ -93,6 +97,7 @@ export const Dashboard = () => {
                 toast.error(error.response?.data?.message || 'failed to load notes')
             }
         }
+
         loadNotes()
         initSocketListeners()
 
@@ -145,6 +150,7 @@ export const Dashboard = () => {
     const archiveNote = async(note) => {
         try {
             await updateNote(note._id,{...note,is_archived:true,is_pinned:false})
+            setIsEditorOpen(false)
             toast.success('Note archived')
         }
         catch(error) {
@@ -168,18 +174,57 @@ export const Dashboard = () => {
         try {
             if (view === 'binned') {
                 await deleteNote(note._id)
+                toast.success('Note Deleted Permanently')
             }
             else {
-                await updateNote(note._id,{...note,is_binned:true,is_pinned:false})
+                await updateNote(note._id,{...note,is_binned:true,is_pinned:false,is_archived:false})
+                toast.success('Note Deleted')
             }
             setIsEditorOpen(false)
             setSelectedNote(null)
-            toast.success('Note Deletion Successful')
         }
         catch (error) {
             toast.error(error.response?.data?.message || 'something went wrong')
         }
     } 
+
+    const handleNoteExport = async(note) => {
+        try {
+            const res = await exportNote(note._id)
+            const disposition = res.headers['content-disposition']
+            const match = disposition?.match(/filename="?([^"]+)"?/)
+            const filename = match ? match[1] : `${note.title}.txt`
+            const url = window.URL.createObjectURL(res.data)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = filename
+            link.click()
+            window.URL.revokeObjectURL(url)
+        }
+        catch(error) {
+            toast.error(error.response?.data?.message || 'something went wrong')
+        }
+    }
+
+    const handleImportClick = () => {
+        importInputRef.current.click()
+    }
+
+    const handleNoteImport = async(e) => {
+        const file = e.target.files[0]
+        if (!file)
+            return
+        try {
+            await importNote(file)
+            toast.success('Note imported successfully')
+        }
+        catch(error) {
+            toast.error(error.response?.data?.message || 'something went wrong')
+        }
+        finally {
+            e.target.value = null
+        }
+    }
 
     /* profile handler -- when someone clicks on profile button */
     const handleProfile = () => {
@@ -193,9 +238,9 @@ export const Dashboard = () => {
     }
 
     return (
-       <>
+        <>
             <div className="flex min-h-screen">
-                <nav className="sticky top-0 flex h-screen w-16 flex-col items-center gap-2 border-r border-gray-100 bg-white py-4 sm:w-20">
+                <nav className="sticky top-0 flex h-screen w-16 flex-col items-center gap-2 border-r border-stone-300 bg-stone-50 py-4 sm:w-20">
                     <button onClick={() => setView('all')} aria-label="All notes" className={`rounded-md p-2 ${view === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                         <Files className="h-5 w-5"/>
                     </button>
@@ -212,12 +257,12 @@ export const Dashboard = () => {
                 <div
                     className="min-h-screen flex-1 bg-gray-50 pb-24 sm:pb-8"
                     style={{
-                        backgroundImage: "url('/dashboard-bg.png')",
+                        backgroundImage: "url('/doodle-bg.png')",
                         backgroundRepeat: "repeat",
                         backgroundSize: "900px auto",
                     }}
                 >
-                    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+                    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-stone-300 bg-stone-50 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
                         <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">Scribble Dashboard</h1>
                         <div className="ml-auto flex items-center gap-4">
                             <div className="relative w-48 sm:w-64">
@@ -234,7 +279,39 @@ export const Dashboard = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-6 lg:grid-cols-3 lg:p-8 xl:grid-cols-4">
-                        {
+                    {
+                        filteredNotes.length === 0 ? (
+                            <div className="col-span-full flex min-h-[50vh] flex-col items-center justify-center gap-3">
+                                <img
+                                    src={
+                                        view === 'binned'
+                                            ? '/empty-bin.svg'
+                                            : view === 'archived'
+                                                ? '/empty-archive.svg'
+                                                : '/no-notes.svg'
+                                    }
+                                    alt={
+                                        view === 'binned'
+                                            ? 'Empty bin'
+                                            : view === 'archived'
+                                                ? 'Empty archive'
+                                                : view === 'pinned'
+                                                    ? 'Nothing pinned'
+                                                    : 'No Notes Yet'
+                                    }
+                                    className="w-full max-w-[220px]"
+                                />
+                                <p className="text-lg font-medium text-gray-500">
+                                    {view === 'binned'
+                                        ? 'Empty Bin'
+                                        : view === 'archived'
+                                            ? 'Empty Archive'
+                                            : view === 'pinned'
+                                                ? 'Nothing Pinned'
+                                                : 'No Notes Yet'}
+                                </p>
+                            </div>
+                        ) : (
                             filteredNotes.map((note) => 
                                 <NoteCard
                                     onClick={() => handleNoteClick(note)}
@@ -242,17 +319,38 @@ export const Dashboard = () => {
                                     title={note.title}
                                     content={note.content}
                                     isPinned={note.is_pinned}
-                                    onPin={() => togglePin(note)}
+                                    onPin={view === 'all' || view === 'pinned' ? () => togglePin(note) : undefined}
                                     onArchive={view === 'all' ? () => archiveNote(note) : undefined}
                                     onRestore={view !== 'all' ? () => restoreNote(note) : undefined}
                                     onDelete={() => handleNoteDeletion(note)}
                                     isPermanentDelete={view === 'binned'}
                                 />)
-                        }
+                        )
+                    }
                     </div>
-                    <button onClick={handleNoteCreation} aria-label="Create note" className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
-                        <StickyNotePlus className="h-5 w-5"/>
-                    </button>
+                    <input
+                        type="file"
+                        accept=".txt"
+                        ref={importInputRef}
+                        onChange={handleNoteImport}
+                        className="hidden"
+                    />
+                    {
+                        /* removing buttons when the view is anything but 'all' */
+                        (view === 'all') ?
+                        (   
+                            <div>
+                                <button onClick={handleImportClick} aria-label="Import note" className="fixed bottom-6 right-24 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-28">
+                                    <Upload className="h-5 w-5"/>
+                                </button>
+                                <button onClick={handleNoteCreation} aria-label="Create note" className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
+                                    <StickyNotePlus className="h-5 w-5"/>
+                                </button>
+                            </div>
+                        ) 
+                        :
+                        (<></>)
+                    } 
                 </div>
             </div>
             {
@@ -262,9 +360,9 @@ export const Dashboard = () => {
                         note={selectedNote}
                         onSave={handleNoteUpdate}
                         onDelete={handleNoteDeletion}
-                        onPin={() => togglePin(selectedNote)}
                         onArchive={view === 'all' ? () => archiveNote(selectedNote) : undefined}
                         onRestore={view !== 'all' ? () => restoreNote(selectedNote) : undefined}
+                        onExport={() => handleNoteExport(selectedNote)}
                         isPermanentDelete={view === 'binned'}
                         onClose= {() => 
                         {

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { createNote, deleteNote, updateNote, getNote, getAllNotes } from '../services/noteService.js'
+import { createNote, deleteNote, updateNote, getNote, getAllNotes, exportNote, importNote } from '../services/noteService.js'
 import { getSocket } from '../utils/socket.js'
 
 let latestRequestId = 0
@@ -123,6 +123,37 @@ const useNoteStore = create((set,get) => ({
                 set({error: err.response?.data?.message || 'Notes Retrieval Failed'})
                 throw err
             }
+        }
+    },
+
+    exportNote: async(note_id) => {
+
+        set({error: null})
+
+        try {
+            const res = await exportNote(note_id)
+            return res
+        }
+        catch(err) {
+            set({error: err.response?.data?.message || 'Note Export Failed'})
+            throw err
+        }
+    },
+
+    importNote: async(file) => {
+
+        set({error: null})
+
+        try {
+            const res = await importNote(file)
+            const exists = get().notes.some((note) => note._id === res.data.created_note._id)
+            if (!exists)
+                set({notes: [...get().notes,res.data.created_note]})
+            return res.data.created_note
+        }
+        catch(err) {
+            set({error: err.response?.data?.message || 'Note Import Failed'})
+            throw err
         }
     }
 }))

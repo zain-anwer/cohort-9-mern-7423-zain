@@ -1,5 +1,5 @@
 import { useState , useRef, useEffect } from 'react'
-import { CircleX, Pencil, Trash2, Pin, PinOff, Archive, ArchiveRestore } from 'lucide-react'
+import { CircleX, Pencil, Trash2, Archive, ArchiveRestore, Download } from 'lucide-react'
 import ReactQuill from 'react-quill-new'
 import toast from 'react-hot-toast'
 
@@ -13,7 +13,7 @@ const modules = {
     ]
 }
 
-export const NoteEditor = ({note,onSave,onDelete,onPin,onArchive,onRestore,isPermanentDelete,onClose,isReadOnly,setIsReadOnly}) => {
+export const NoteEditor = ({note,onSave,onDelete,onArchive,onRestore,onExport,isPermanentDelete,onClose,isReadOnly,setIsReadOnly}) => {
 
     const [title,setTitle] = useState(note?.title ?? "Untitled")
     const [content,setContent] = useState(note?.content ?? "")
@@ -33,6 +33,8 @@ export const NoteEditor = ({note,onSave,onDelete,onPin,onArchive,onRestore,isPer
         if (isReadOnly) 
             return
         if (title == note.title && content == note.content)
+            return
+        if (title.trim() === '')
             return
 
         setIsSaving("saving...")
@@ -69,14 +71,14 @@ export const NoteEditor = ({note,onSave,onDelete,onPin,onArchive,onRestore,isPer
     const handleDeletion = () => {
         onDelete(note)
     }
-    const handlePin = () => {
-        onPin()
-    }
     const handleArchive = () => {
         onArchive()
     }
     const handleRestore = () => {
         onRestore()
+    }
+    const handleExport = () => {
+        onExport()
     }
     const handleClose = () => {
         onClose()
@@ -91,9 +93,6 @@ export const NoteEditor = ({note,onSave,onDelete,onPin,onArchive,onRestore,isPer
                         <span className="text-xs text-gray-400">{isSaving}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button onClick={handlePin} aria-label="Pin note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
-                            {note.is_pinned ? <PinOff className="h-4 w-4"/> : <Pin className="h-4 w-4"/>}
-                        </button>
                         {
                             onArchive && (
                                 <button onClick={handleArchive} aria-label="Archive note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
@@ -108,6 +107,9 @@ export const NoteEditor = ({note,onSave,onDelete,onPin,onArchive,onRestore,isPer
                                 </button>
                             )
                         }
+                        <button onClick={handleExport} aria-label="Export note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                            <Download className="h-4 w-4"/>
+                        </button>
                         {
                             isReadOnly && !isPermanentDelete && (
                                 <button onClick={handleModeChange} aria-label="Edit note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
