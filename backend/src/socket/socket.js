@@ -6,9 +6,16 @@ dotenv.config()
 
 let io = null
 
+
+const CLIENT_URL = process.env.CLIENT_URL
+
+if (!CLIENT_URL) {
+    throw new Error('CLIENT_URL environment variable is required')
+}
+
 export const initializeSocket = (httpServer) => {
     io = new Server(httpServer, {
-        cors: {origin: process.env.CLIENT_URL}
+        cors: {origin: CLIENT_URL}
     })
 
     io.use(socketMiddleware)

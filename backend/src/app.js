@@ -15,9 +15,16 @@ dotenv.config()
 // creating an express app
 const app = express()
 
+const CLIENT_URL = process.env.CLIENT_URL
+
+if (!CLIENT_URL) {
+    throw new Error('CLIENT_URL environment variable is required')
+}
+
+
 // mounting middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: CLIENT_URL,
     exposedHeaders: ['Content-Disposition'],
 }))
 app.use(express.json())
