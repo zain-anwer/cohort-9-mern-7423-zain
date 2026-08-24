@@ -24,3 +24,19 @@ export const getAllNotes = async(note_id) => {
     const res = await axiosInstance.get('/notes/')
     return res
 }
+
+export const exportNote = async(note_id) => {
+    const res = axios.get(`/notes/export/${note_id}`,{
+        responseType: 'blob'
+    })
+    const disposition = response.headers['content-disposition'];
+    const match = disposition?.match(/filename="?([^"]+)"?/);
+    return { blob: response.data, filename: match ? match[1] : 'note.txt' };
+}
+
+export const importNote = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosInstance.post('/notes/import', formData);
+  return response.data;
+}
