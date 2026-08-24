@@ -1,11 +1,14 @@
 import { Server } from 'socket.io'
 import { socketMiddleware } from '../middleware/socket.middleware.js'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 let io = null
 
 export const initializeSocket = (httpServer) => {
     io = new Server(httpServer, {
-        cors: {origin: process.env.CLIENT_URL, credentials: true}
+        cors: {origin: process.env.CLIENT_URL}
     })
 
     io.use(socketMiddleware)
