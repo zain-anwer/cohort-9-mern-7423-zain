@@ -90,6 +90,11 @@ export const NoteEditor = ({note,onSave,onDelete,onArchive,onRestore,onExport,is
                 <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <button onClick={handleClose} aria-label="Close" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"><CircleX className="h-5 w-5"/></button>
+                        {
+                            isReadOnly && (
+                                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">Read only</span>
+                            )
+                        }
                         <span className="text-xs text-gray-400">{isSaving}</span>
                     </div>
                     <div className="flex items-center gap-2">
