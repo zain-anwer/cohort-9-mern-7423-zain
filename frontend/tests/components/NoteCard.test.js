@@ -105,10 +105,10 @@ describe('NoteCard rendering', () => {
         expect(screen.getByLabelText('Delete note permanently')).toBeInTheDocument()
     })
 
-    test('has role button and is focusable', () => {
-        const { container } = render(<NoteCard {...buildProps()} />)
-        const card = container.querySelector('[role="button"]')
-        expect(card).toHaveAttribute('tabIndex', '0')
+    test('renders the title and content inside a native button', () => {
+        render(<NoteCard {...buildProps()} />)
+        const titleButton = screen.getByText('My Note').closest('button')
+        expect(titleButton).toBeInTheDocument()
     })
 
     test('renders Unpin note label when isPinned is true', () => {
@@ -124,27 +124,6 @@ describe('NoteCard interactions', () => {
         render(<NoteCard {...props} />)
         fireEvent.click(screen.getByText('My Note'))
         expect(props.onClick).toHaveBeenCalledTimes(1)
-    })
-
-    test('calls onClick when Enter key is pressed', () => {
-        const props = buildProps()
-        const { container } = render(<NoteCard {...props} />)
-        fireEvent.keyDown(container.firstChild, { key: 'Enter' })
-        expect(props.onClick).toHaveBeenCalledTimes(1)
-    })
-
-    test('calls onClick when Space key is pressed', () => {
-        const props = buildProps()
-        const { container } = render(<NoteCard {...props} />)
-        fireEvent.keyDown(container.firstChild, { key: ' ' })
-        expect(props.onClick).toHaveBeenCalledTimes(1)
-    })
-
-    test('does not call onClick on unrelated key press', () => {
-        const props = buildProps()
-        const { container } = render(<NoteCard {...props} />)
-        fireEvent.keyDown(container.firstChild, { key: 'Tab' })
-        expect(props.onClick).not.toHaveBeenCalled()
     })
 
     test('calls onPin without triggering onClick', () => {
@@ -176,20 +155,6 @@ describe('NoteCard interactions', () => {
         render(<NoteCard {...props} />)
         fireEvent.click(screen.getByLabelText('Move note to bin'))
         expect(props.onDelete).toHaveBeenCalledTimes(1)
-        expect(props.onClick).not.toHaveBeenCalled()
-    })
-
-    test('does not call onClick when Enter is pressed while a pin button is focused', () => {
-        const props = buildProps()
-        render(<NoteCard {...props} />)
-        fireEvent.keyDown(screen.getByLabelText('Pin note'), { key: 'Enter' })
-        expect(props.onClick).not.toHaveBeenCalled()
-    })
-
-    test('does not call onClick when Space is pressed while a delete button is focused', () => {
-        const props = buildProps()
-        render(<NoteCard {...props} />)
-        fireEvent.keyDown(screen.getByLabelText('Move note to bin'), { key: ' ' })
         expect(props.onClick).not.toHaveBeenCalled()
     })
 })

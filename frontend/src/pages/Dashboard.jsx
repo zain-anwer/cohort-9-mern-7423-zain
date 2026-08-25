@@ -36,7 +36,7 @@ export const Dashboard = () => {
     const cleanSocketListeners = useNoteStore((state) => state.cleanSocketListeners)
 
     const [query,setQuery] = useState("")
-    const [selectedNote,setSelectedNote] = useState(null)
+    const [selectedNoteId,setSelectedNoteId] = useState(null)
 
     /* states to manage the note editor modal and view */
 
@@ -107,7 +107,7 @@ export const Dashboard = () => {
     /* should open modal in read mode by default but can be switched to write mode */
     const handleNoteClick = (note) => {
         setIsEditorOpen(true)
-        setSelectedNote(note)
+        setSelectedNoteId(note._id)
         setIsReadOnly(true)
     }
 
@@ -118,7 +118,7 @@ export const Dashboard = () => {
             toast.success('created and opened a new note successfully')
             
             setIsReadOnly(false)
-            setSelectedNote(created_note)
+            setSelectedNoteId(created_note._id)
             setIsEditorOpen(true)
         }
         catch(error) {
@@ -130,7 +130,7 @@ export const Dashboard = () => {
     const handleNoteUpdate = async(note_id,note) => {
         try {
             const updated_note = await updateNote(note_id,note)
-            setSelectedNote(updated_note)
+            setSelectedNoteId(updated_note._id)
         }
         catch (error) {
             throw error
@@ -181,7 +181,7 @@ export const Dashboard = () => {
                 toast.success('Note Deleted')
             }
             setIsEditorOpen(false)
-            setSelectedNote(null)
+            setSelectedNoteId(null)
         }
         catch (error) {
             toast.error(error.response?.data?.message || 'something went wrong')
@@ -236,6 +236,10 @@ export const Dashboard = () => {
     const handleQuery = (e) => {
         setQuery(e.target.value)
     }
+
+    const getSelectedNote = (id) => {
+        return notes.find((note) => id === note._id)
+    }   
 
     return (
         <>
@@ -357,17 +361,17 @@ export const Dashboard = () => {
                 isEditorOpen && 
                 (
                     <NoteEditor
-                        note={selectedNote}
+                        note={getSelectedNote(selectedNoteId)}
                         onSave={handleNoteUpdate}
                         onDelete={handleNoteDeletion}
-                        onArchive={view === 'all' ? () => archiveNote(selectedNote) : undefined}
-                        onRestore={view === 'archived' || view === 'binned' ? () => restoreNote(selectedNote) : undefined}
-                        onExport={() => handleNoteExport(selectedNote)}
+                        onArchive={view === 'all' ? () => archiveNote(getSelectedNote(selectedNoteId)) : undefined}
+                        onRestore={view === 'archived' || view === 'binned' ? () => restoreNote(getSelectedNote(selectedNoteId)) : undefined}
+                        onExport={() => handleNoteExport(getSelectedNote(selectedNoteId))}
                         isPermanentDelete={view === 'binned'}
                         onClose= {() => 
                         {
                             setIsEditorOpen(false)
-                            setSelectedNote(null)
+                            setSelectedNoteId(null)
                         }}
                         isReadOnly={isReadOnly}
                         setIsReadOnly={setIsReadOnly}
