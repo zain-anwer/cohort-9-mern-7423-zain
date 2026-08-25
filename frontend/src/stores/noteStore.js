@@ -117,8 +117,14 @@ const useNoteStore = create((set,get) => ({
         try{
             const res = await getAllNotes()
             if (requestId === latestRequestId) {
-               
-                set({notes: res.data})
+                const merged_array = res.data.map((note) => {
+                    const existing_note = get().notes.find((n) => note._id === n._id)
+                    if (existing_note && existing_note.version > note.version)
+                        return existing_note
+                    else
+                        return note
+                })
+                set({notes: merged_array})
             }
         }
         catch(err)

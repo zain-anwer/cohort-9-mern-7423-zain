@@ -176,6 +176,35 @@ describe('getAllNotes', () => {
         expect(useNoteStore.getState().notes).toEqual([buildNote({ _id: 'newer' })])
     })
 
+    test('retains the local note when the fetched version is older', async () => {
+        const newerLocal = buildNote({ _id: 'a', version: 3, title: 'Newer Local' })
+        useNoteStore.setState({ notes: [newerLocal] })
+        getAllNotes.mockResolvedValueOnce({ data: [buildNote({ _id: 'a', version: 1, title: 'Stale Fetched' })] })
+
+        await useNoteStore.getState().getAllNotes()
+
+        expect(useNoteStore.getState().notes).toEqual([newerLocal])
+    })
+
+    test('adopts the fetched note when its version is newer than the local one', async () => {
+        const staleLocal = buildNote({ _id: 'a', version: 1, title: 'Stale Local' })
+        useNoteStore.setState({ notes: [staleLocal] })
+        const newerFetched = buildNote({ _id: 'a', version: 2, title: 'Newer Fetched' })
+        getAllNotes.mockResolvedValueOnce({ data: [newerFetched] })
+
+        await useNoteStore.getState().getAllNotes()
+
+        expect(useNoteStore.getState().notes).toEqual([newerFetched])
+    })
+
+    test('does not crash and adds a fetched note that does not yet exist locally', async () => {
+        const brandNew = buildNote({ _id: 'z', version: 1 })
+        getAllNotes.mockResolvedValueOnce({ data: [brandNew] })
+
+        await expect(useNoteStore.getState().getAllNotes()).resolves.not.toThrow()
+        expect(useNoteStore.getState().notes).toEqual([brandNew])
+    })
+
     test('sets an error and rethrows when the latest request fails', async () => {
         getAllNotes.mockRejectedValueOnce({ response: { data: { message: 'Server error' } } })
 

@@ -253,10 +253,6 @@ describe('Dashboard note creation and editing', () => {
             expect(mockCreateNote).toHaveBeenCalledWith({ title: 'Untitled', content: '' })
         })
 
-        // Wait on the toast, which only fires after the created note has been
-        // set as the selected note and React has re-rendered. Asserting on
-        // mockCreateNote alone can resolve before that state update lands,
-        // since the mock is invoked synchronously at the start of the handler.
         await waitFor(() => {
             expect(toast.success).toHaveBeenCalledWith('created and opened a new note successfully')
         })
@@ -292,14 +288,21 @@ describe('Dashboard note creation and editing', () => {
     })
 
     test('saves an edit through the editor and reflects the updated title', async () => {
-        mockUpdateNote.mockResolvedValueOnce(buildNote({ _id: 'a', title: 'Updated Title' }))
-        render(<Dashboard />)
+        const updatedNote = buildNote({ _id: 'a', title: 'Updated Title', content: '<p>Alpha content</p>' })
+        mockUpdateNote.mockResolvedValueOnce(updatedNote)
+
+        const { rerender } = render(<Dashboard />)
         fireEvent.click(within(screen.getByTestId('notecard-First Note')).getByText('First Note'))
         fireEvent.click(within(screen.getByTestId('note-editor')).getByText('save-editor'))
 
         await waitFor(() => {
-            expect(within(screen.getByTestId('note-editor')).getByText('Updated Title')).toBeInTheDocument()
+            expect(mockUpdateNote).toHaveBeenCalledWith('a', expect.objectContaining({ _id: 'a' }))
         })
+
+        setNoteStoreState(defaultNotes.map((note) => (note._id === 'a' ? updatedNote : note)))
+        rerender(<Dashboard />)
+
+        expect(within(screen.getByTestId('note-editor')).getByText('Updated Title')).toBeInTheDocument()
     })
 })
 
