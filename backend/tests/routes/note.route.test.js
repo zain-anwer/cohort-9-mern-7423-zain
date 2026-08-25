@@ -275,13 +275,14 @@ describe('PUT /api/notes/:id', () => {
         const res = await request(app)
             .put('/api/notes/62170c5af3d27e919f30b100')
             .set('Authorization','Bearer this.is.a.dummy.token')
-            .send({title: 'Kale Salad', content: 'Updated content'})
+            .send({title: 'Kale Salad', content: 'Updated content', version: 1})
 
         expect(res.status).to.equal(200)
         expect(res.body.Message).to.equal('Note Updated Successfully')
         expect(res.body.updated_note).to.deep.equal(updated_note)
         expect(noteService.updateNoteService.calledWithExactly(
-            '62170c5af3d27e919f30b100',validPayload.userId,{title: 'Kale Salad', content: 'Updated content'}
+            '62170c5af3d27e919f30b100',validPayload.userId,
+            {title: 'Kale Salad', content: 'Updated content', is_pinned: undefined, is_binned: undefined, is_archived: undefined, version: 1}
         )).to.be.true
     })
 
@@ -297,10 +298,44 @@ describe('PUT /api/notes/:id', () => {
         const res = await request(app)
             .put('/api/notes/62170c5af3d27e919f30b100')
             .set('Authorization','Bearer this.is.a.dummy.token')
-            .send({title: 'Kale Salad', content: 'Updated content'})
+            .send({title: 'Kale Salad', content: 'Updated content', version: 1})
 
         expect(res.status).to.equal(404)
         expect(res.body.message).to.equal('Note Not Found')
+    })
+
+    it('should return 409 if the note was changed elsewhere', async () => {
+
+        authorizeAsValidUser()
+
+        const fakeError = new Error('Someone changed this note - Please refresh')
+        fakeError.statusCode = 409
+
+        sinon.stub(noteService,'updateNoteService').rejects(fakeError)
+
+        const res = await request(app)
+            .put('/api/notes/62170c5af3d27e919f30b100')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+            .send({title: 'Kale Salad', content: 'Updated content', version: 1})
+
+        expect(res.status).to.equal(409)
+        expect(res.body.message).to.equal('Someone changed this note - Please refresh')
+    })
+
+    it('should return 400 if version is missing', async () => {
+
+        authorizeAsValidUser()
+
+        const update_note_service_stub = sinon.stub(noteService,'updateNoteService')
+
+        const res = await request(app)
+            .put('/api/notes/62170c5af3d27e919f30b100')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+            .send({title: 'Kale Salad', content: 'Updated content'})
+
+        expect(res.status).to.equal(400)
+        expect(res.body.message).to.equal('A valid version is required to update this note')
+        expect(update_note_service_stub.called).to.be.false
     })
 })
 
@@ -350,5 +385,97 @@ describe('DELETE /api/notes/:id', () => {
 
         expect(res.status).to.equal(404)
         expect(res.body.message).to.equal('Record Not Found')
+    })
+})
+
+describe('GET /api/notes/export/:id', () => {
+
+    afterEach(() => {
+        sinon.restore()
+    })
+
+    it('should return 200 with the exported note content as plain text', async () => {
+
+        authorizeAsValidUser()
+
+        const exported_note = {
+            title: 'Kale Salad',
+            content: 'Not worth it'
+        }
+
+        sinon.stub(noteService,'exportNoteService').resolves(exported_note)
+
+        const res = await request(app)
+            .get('/api/notes/export/65c2a1f4e3b0c44298fc1c14')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+
+        expect(res.status).to.equal(200)
+        expect(res.text).to.equal(exported_note.content)
+        expect(res.headers['content-disposition']).to.include(`${exported_note.title}.txt`)
+        expect(noteService.exportNoteService.calledWithExactly('65c2a1f4e3b0c44298fc1c14',validPayload.userId)).to.be.true
+    })
+
+    it('should return an appropriate error status code and message if note is not found', async () => {
+
+        authorizeAsValidUser()
+
+        const fakeError = new Error('No Note Found')
+        fakeError.statusCode = 404
+
+        sinon.stub(noteService,'exportNoteService').rejects(fakeError)
+
+        const res = await request(app)
+            .get('/api/notes/export/65c2a1f4e3b0c44298fc1c14')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+
+        expect(res.status).to.equal(404)
+        expect(res.body.message).to.equal('No Note Found')
+    })
+})
+
+describe('POST /api/notes/import', () => {
+
+    afterEach(() => {
+        sinon.restore()
+    })
+
+    it('should return 201 and the created note on successful import', async () => {
+
+        authorizeAsValidUser()
+
+        const creationResult = {
+            _id: '72170c5ah3d29e919f30b113',
+            title: 'MyNote',
+            content: 'Imported content',
+            user_id: validPayload.userId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
+
+        sinon.stub(noteService,'createNoteService').resolves(creationResult)
+
+        const res = await request(app)
+            .post('/api/notes/import')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+            .attach('file', Buffer.from('Imported content'), {filename: 'MyNote.txt', contentType: 'text/plain'})
+
+        expect(res.status).to.equal(201)
+        expect(res.body.Message).to.equal('Note Imported Successfully')
+        expect(res.body.created_note).to.deep.equal(creationResult)
+    })
+
+    it('should return 400 if no file is provided', async () => {
+
+        authorizeAsValidUser()
+
+        const create_note_service_stub = sinon.stub(noteService,'createNoteService')
+
+        const res = await request(app)
+            .post('/api/notes/import')
+            .set('Authorization','Bearer this.is.a.dummy.token')
+
+        expect(res.status).to.equal(400)
+        expect(res.body.message).to.equal('No File Provided')
+        expect(create_note_service_stub.called).to.be.false
     })
 })

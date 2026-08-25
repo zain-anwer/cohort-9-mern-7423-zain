@@ -17,6 +17,35 @@ const notesSchema = new mongoose.Schema(
         {
             type: String,
             default: ''
+        },
+        is_pinned: 
+        {
+            type: Boolean,
+            default: false
+        },
+        is_binned: {
+            type: Boolean,
+            default: false
+        },
+        is_archived: {
+            type: Boolean,
+            default: false
+        },
+        pinned_at: {
+            type: Date,
+            default: null
+        },
+        binned_at: {
+            type: Date,
+            default: null
+        },
+        archived_at: {
+            type: Date,
+            default: null
+        },
+        version: {
+            type: Number,
+            default: 1 
         }
     },
     {
