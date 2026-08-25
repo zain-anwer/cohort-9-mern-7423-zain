@@ -8,6 +8,8 @@ export const NoteCard = ({title,content,onClick,isPinned,onPin,onArchive,onResto
             tabIndex={0}
             onClick={onClick}
             onKeyDown={(e) => {
+                if (e.target !== e.currentTarget)
+                    return
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     onClick()
@@ -17,7 +19,7 @@ export const NoteCard = ({title,content,onClick,isPinned,onPin,onArchive,onResto
             <div className="mb-2 flex items-center justify-end gap-1">
                 {
                     onPin && (
-                        <button onClick={(e) => { e.stopPropagation(); onPin() }} aria-label="Pin note" className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
+                        <button onClick={(e) => { e.stopPropagation(); onPin() }} aria-label={isPinned ? "Unpin note" : "Pin note"} className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
                             {isPinned ? <PinOff className="h-4 w-4"/> : <Pin className="h-4 w-4"/>}
                         </button>
                     )

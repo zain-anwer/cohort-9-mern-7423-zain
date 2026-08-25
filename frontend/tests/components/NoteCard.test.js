@@ -110,6 +110,12 @@ describe('NoteCard rendering', () => {
         const card = container.querySelector('[role="button"]')
         expect(card).toHaveAttribute('tabIndex', '0')
     })
+
+    test('renders Unpin note label when isPinned is true', () => {
+        render(<NoteCard {...buildProps({ isPinned: true })} />)
+        expect(screen.getByLabelText('Unpin note')).toBeInTheDocument()
+        expect(screen.queryByLabelText('Pin note')).not.toBeInTheDocument()
+    })
 })
 
 describe('NoteCard interactions', () => {
@@ -170,6 +176,20 @@ describe('NoteCard interactions', () => {
         render(<NoteCard {...props} />)
         fireEvent.click(screen.getByLabelText('Move note to bin'))
         expect(props.onDelete).toHaveBeenCalledTimes(1)
+        expect(props.onClick).not.toHaveBeenCalled()
+    })
+
+    test('does not call onClick when Enter is pressed while a pin button is focused', () => {
+        const props = buildProps()
+        render(<NoteCard {...props} />)
+        fireEvent.keyDown(screen.getByLabelText('Pin note'), { key: 'Enter' })
+        expect(props.onClick).not.toHaveBeenCalled()
+    })
+
+    test('does not call onClick when Space is pressed while a delete button is focused', () => {
+        const props = buildProps()
+        render(<NoteCard {...props} />)
+        fireEvent.keyDown(screen.getByLabelText('Move note to bin'), { key: ' ' })
         expect(props.onClick).not.toHaveBeenCalled()
     })
 })

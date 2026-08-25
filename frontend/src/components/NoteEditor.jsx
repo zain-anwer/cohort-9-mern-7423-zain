@@ -34,8 +34,10 @@ export const NoteEditor = ({note,onSave,onDelete,onArchive,onRestore,onExport,is
             return
         if (title == note.title && content == note.content)
             return
-        if (title.trim() === '')
+        if (title.trim() === '') {
+            setIsSaving('title required')
             return
+        }
 
         setIsSaving("saving...")
         const timeout = setTimeout(async() => {

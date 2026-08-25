@@ -349,6 +349,12 @@ describe('Dashboard pin, archive, restore and delete', () => {
         expect(toast.success).toHaveBeenCalledWith('Note restored')
     })
 
+    test('does not offer restore in the pinned view', () => {
+        render(<Dashboard />)
+        fireEvent.click(screen.getByLabelText('Pinned notes'))
+        expect(screen.queryByLabelText('restore-Second Note')).not.toBeInTheDocument()
+    })
+
     test('restores a note from the binned view using the is_binned patch', async () => {
         render(<Dashboard />)
         fireEvent.click(screen.getByLabelText('Binned notes'))
@@ -418,7 +424,9 @@ describe('Dashboard export', () => {
         })
         expect(mockLink.href).toBe('blob:mock-url')
         expect(mockLink.click).toHaveBeenCalledTimes(1)
-        expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+        await waitFor(() => {
+            expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+        })
     })
 
     test('falls back to the note title as the filename when no header is present', async () => {

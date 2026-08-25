@@ -160,7 +160,7 @@ export const Dashboard = () => {
 
     const restoreNote = async(note) => {
         try {
-            const patch = view === 'archived' ? {is_archived:false} : {is_binned:false}
+            const patch = note.is_archived ? {is_archived:false} : {is_binned:false}
             await updateNote(note._id,{...note,...patch})
             setIsEditorOpen(false)
             toast.success('Note restored')
@@ -199,7 +199,7 @@ export const Dashboard = () => {
             link.href = url
             link.download = filename
             link.click()
-            window.URL.revokeObjectURL(url)
+            setTimeout(() => window.URL.revokeObjectURL(url), 0)
         }
         catch(error) {
             toast.error(error.response?.data?.message || 'something went wrong')
@@ -321,7 +321,7 @@ export const Dashboard = () => {
                                     isPinned={note.is_pinned}
                                     onPin={view === 'all' || view === 'pinned' ? () => togglePin(note) : undefined}
                                     onArchive={view === 'all' ? () => archiveNote(note) : undefined}
-                                    onRestore={view !== 'all' ? () => restoreNote(note) : undefined}
+                                    onRestore={view === 'archived' || view === 'binned' ? () => restoreNote(note) : undefined}
                                     onDelete={() => handleNoteDeletion(note)}
                                     isPermanentDelete={view === 'binned'}
                                 />)
@@ -361,7 +361,7 @@ export const Dashboard = () => {
                         onSave={handleNoteUpdate}
                         onDelete={handleNoteDeletion}
                         onArchive={view === 'all' ? () => archiveNote(selectedNote) : undefined}
-                        onRestore={view !== 'all' ? () => restoreNote(selectedNote) : undefined}
+                        onRestore={view === 'archived' || view === 'binned' ? () => restoreNote(selectedNote) : undefined}
                         onExport={() => handleNoteExport(selectedNote)}
                         isPermanentDelete={view === 'binned'}
                         onClose= {() => 

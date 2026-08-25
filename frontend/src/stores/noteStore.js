@@ -25,6 +25,10 @@ const useNoteStore = create((set,get) => ({
 
         socket.on('note:updation',(updated_note) => {
             const existing_note = get().notes.find((note) => note._id === updated_note._id)
+            if (!existing_note) {
+                set({notes: [...get().notes, updated_note]})
+                return
+            }
             if (updated_note.version > existing_note.version)
                 set({notes: get().notes.map((note) => (note._id === updated_note._id) ? updated_note : note)})
         })
