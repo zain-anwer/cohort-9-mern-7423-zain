@@ -149,7 +149,7 @@ describe('getNote', () => {
 })
 
 describe('getAllNotes', () => {
-    test('replaces state with the fetched notes', async () => {
+    test('replaces state with the fetched notes when nothing has changed locally', async () => {
         const notes = [buildNote({ _id: 'a' }), buildNote({ _id: 'b' })]
         getAllNotes.mockResolvedValueOnce({ data: notes })
 
@@ -203,6 +203,86 @@ describe('getAllNotes', () => {
 
         await expect(useNoteStore.getState().getAllNotes()).resolves.not.toThrow()
         expect(useNoteStore.getState().notes).toEqual([brandNew])
+    })
+
+    test('preserves a note created locally while the request is in flight', async () => {
+        let resolveFetch
+        getAllNotes.mockImplementationOnce(() => new Promise((resolve) => { resolveFetch = resolve }))
+
+        const call = useNoteStore.getState().getAllNotes()
+
+        // Simulate a note:creation socket event (or local createNote) landing
+        // after the snapshot (notesAtStart) was already taken.
+        const createdMidFlight = buildNote({ _id: 'new', version: 1, title: 'Created Mid Flight' })
+        useNoteStore.setState({ notes: [...useNoteStore.getState().notes, createdMidFlight] })
+
+        // Server snapshot was taken before the create happened, so it doesn't know about it.
+        resolveFetch({ data: [buildNote({ _id: 'existing', version: 1 })] })
+        await call
+
+        expect(useNoteStore.getState().notes).toEqual(
+            expect.arrayContaining([createdMidFlight, buildNote({ _id: 'existing', version: 1 })])
+        )
+        expect(useNoteStore.getState().notes).toHaveLength(2)
+    })
+
+    test('does not resurrect a note deleted locally while the request is in flight', async () => {
+        const existing = buildNote({ _id: 'a', version: 1 })
+        useNoteStore.setState({ notes: [existing] })
+
+        let resolveFetch
+        getAllNotes.mockImplementationOnce(() => new Promise((resolve) => { resolveFetch = resolve }))
+
+        const call = useNoteStore.getState().getAllNotes()
+
+        // Simulate a note:deletion socket event (or local deleteNote) landing
+        // after the snapshot was taken but before the response arrives.
+        useNoteStore.setState({ notes: [] })
+
+        // Server's snapshot still has the note, since it hasn't processed the delete yet.
+        resolveFetch({ data: [existing] })
+        await call
+
+        expect(useNoteStore.getState().notes).toEqual([])
+    })
+
+    test('keeps a mid-flight local update even though the note was also deleted-then-refetched elsewhere', async () => {
+        const original = buildNote({ _id: 'a', version: 1, title: 'Original' })
+        useNoteStore.setState({ notes: [original] })
+
+        let resolveFetch
+        getAllNotes.mockImplementationOnce(() => new Promise((resolve) => { resolveFetch = resolve }))
+
+        const call = useNoteStore.getState().getAllNotes()
+
+        // A newer version arrives locally (e.g. via note:updation) mid-flight.
+        const updatedMidFlight = buildNote({ _id: 'a', version: 2, title: 'Updated Mid Flight' })
+        useNoteStore.setState({ notes: [updatedMidFlight] })
+
+        // Server snapshot still reflects the old version.
+        resolveFetch({ data: [original] })
+        await call
+
+        expect(useNoteStore.getState().notes).toEqual([updatedMidFlight])
+    })
+
+    test('handles a create and a delete happening in the same in-flight window', async () => {
+        const toDelete = buildNote({ _id: 'del', version: 1 })
+        useNoteStore.setState({ notes: [toDelete] })
+
+        let resolveFetch
+        getAllNotes.mockImplementationOnce(() => new Promise((resolve) => { resolveFetch = resolve }))
+
+        const call = useNoteStore.getState().getAllNotes()
+
+        const createdMidFlight = buildNote({ _id: 'new', version: 1 })
+        useNoteStore.setState({ notes: [createdMidFlight] }) // 'del' removed, 'new' added, mid-flight
+
+        // Server snapshot predates both events: still has 'del', doesn't have 'new'.
+        resolveFetch({ data: [toDelete] })
+        await call
+
+        expect(useNoteStore.getState().notes).toEqual([createdMidFlight])
     })
 
     test('sets an error and rethrows when the latest request fails', async () => {

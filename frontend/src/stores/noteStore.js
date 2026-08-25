@@ -110,25 +110,38 @@ const useNoteStore = create((set,get) => ({
     },
 
     getAllNotes: async() => {
-        
+
         const requestId = ++latestRequestId
         set({error: null})
 
-        try{
+        const notesAtStart = new Map(get().notes.map((n) => [n._id, n.version]))
+
+        try {
             const res = await getAllNotes()
-            if (requestId === latestRequestId) {
-                const merged_array = res.data.map((note) => {
-                    const existing_note = get().notes.find((n) => note._id === n._id)
-                    if (existing_note && existing_note.version > note.version)
-                        return existing_note
-                    else
-                        return note
+            if (requestId !== latestRequestId) return // superseded by a newer call
+
+            const currentLocal = get().notes
+            const currentLocalMap = new Map(currentLocal.map((n) => [n._id, n]))
+
+            const deletedDuringFlight = new Set(
+                [...notesAtStart.keys()].filter((id) => !currentLocalMap.has(id))
+            )
+
+            const merged = res.data
+                .filter((note) => !deletedDuringFlight.has(note._id))
+                .map((note) => {
+                    const local = currentLocalMap.get(note._id)
+                    return (local && local.version > note.version) ? local : note
                 })
-                set({notes: merged_array})
-            }
+
+            const mergedIds = new Set(merged.map((n) => n._id))
+            const createdDuringFlight = currentLocal.filter(
+                (n) => !mergedIds.has(n._id) && !notesAtStart.has(n._id)
+            )
+
+            set({notes: [...merged, ...createdDuringFlight]})
         }
-        catch(err)
-        { 
+        catch(err) {
             if (requestId === latestRequestId) {
                 set({error: err.response?.data?.message || 'Notes Retrieval Failed'})
                 throw err

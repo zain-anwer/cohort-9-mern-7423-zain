@@ -86,6 +86,13 @@ export const Dashboard = () => {
 
     },[notes,view,query])
 
+    /* trying to prevent editor from being called with undefined note */
+    useEffect(() => {
+        if (selectedNoteId && !notes.some((note) => note._id === selectedNoteId)) {
+            setIsEditorOpen(false)
+            setSelectedNoteId(null)
+        }
+    }, [notes, selectedNoteId])
     
     /* runs on every rerender --- useful cause notes will be [] when component mounts */
     useEffect(() => {
@@ -358,7 +365,7 @@ export const Dashboard = () => {
                 </div>
             </div>
             {
-                isEditorOpen && 
+                isEditorOpen && getSelectedNote(selectedNoteId) &&
                 (
                     <NoteEditor
                         note={getSelectedNote(selectedNoteId)}
