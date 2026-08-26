@@ -10,3 +10,10 @@ node_modules/
 
 # any files for notes and to dos and all
 *.txt
+
+# SonarQube
+.scannerwork/
+
+# Test coverage
+.nyc_output/
+coverage/

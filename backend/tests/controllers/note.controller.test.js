@@ -626,6 +626,7 @@ describe('Note Export Controller', () => {
 
         const res = {
             setHeader: sinon.stub(),
+            attachment: sinon.stub(),
             status: sinon.stub().returnsThis(),
             send: sinon.stub()
         }
@@ -642,7 +643,7 @@ describe('Note Export Controller', () => {
         await exportNoteController(req,res,next)
 
         expect(res.setHeader.calledWith('Content-Type','text/plain')).to.be.true
-        expect(res.setHeader.calledWith('Content-Disposition',`attachment; filename="${exported_note.title}.txt"`)).to.be.true
+        expect(res.attachment.calledWith(`${exported_note.title}.txt`)).to.be.true
         expect(res.status.calledWith(200)).to.be.true
         expect(res.send.calledWith(exported_note.content)).to.be.true
         expect(next.called).to.be.false
