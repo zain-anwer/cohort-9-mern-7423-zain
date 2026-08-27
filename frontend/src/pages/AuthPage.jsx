@@ -129,10 +129,9 @@ export const AuthPage = () => {
                         isSigninPage ? (  
                             <p className="text-center text-sm text-gray-500">  
                                 Don't have an account?{" "}  
-                                <a  
-                                href="#"  
-                                onClick={(event) => {  
-                                    event.preventDefault();  
+                                <button
+                                type="button"
+                                onClick={() => {  
                                     navigate('/signup'); 
                                     setEmail("") 
                                     setPassword("") 
@@ -140,15 +139,14 @@ export const AuthPage = () => {
                                 }}  
                                 className="font-medium text-gray-900 hover:underline">  
                                 sign up  
-                                </a>  
-                            </p>  
+                                </button>  
+                            </p>
                         ) : (  
                             <p className="text-center text-sm text-gray-500">  
                                 Already have an account?{" "}  
-                                <a  
-                                href="#"  
-                                onClick={(event) => {  
-                                    event.preventDefault();  
+                                <button
+                                type="button"
+                                onClick={() => {  
                                     navigate('/signin'); 
                                     setEmail("") 
                                     setPassword("") 
@@ -156,8 +154,8 @@ export const AuthPage = () => {
                                 }}  
                                 className="font-medium text-gray-900 hover:underline">  
                                 sign in  
-                                </a>  
-                            </p>  
+                                </button>  
+                            </p>
                         )  
                     }  
                 </form>  

@@ -252,16 +252,16 @@ export const Dashboard = () => {
         <>
             <div className="flex min-h-screen">
                 <nav className="sticky top-0 flex h-screen w-16 flex-col items-center gap-2 border-r border-stone-300 bg-stone-50 py-4 sm:w-20">
-                    <button onClick={() => setView('all')} aria-label="All notes" className={`rounded-md p-2 ${view === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+                    <button type='button' onClick={() => setView('all')} aria-label="All notes" className={`rounded-md p-2 ${view === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                         <Files className="h-5 w-5"/>
                     </button>
-                    <button onClick={() => setView('pinned')} aria-label="Pinned notes" className={`rounded-md p-2 ${view === 'pinned' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+                    <button type='button' onClick={() => setView('pinned')} aria-label="Pinned notes" className={`rounded-md p-2 ${view === 'pinned' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                         <Pin className="h-5 w-5"/>
                     </button>
-                    <button onClick={() => setView('archived')} aria-label="Archived notes" className={`rounded-md p-2 ${view === 'archived' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+                    <button type='button' onClick={() => setView('archived')} aria-label="Archived notes" className={`rounded-md p-2 ${view === 'archived' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                         <Archive className="h-5 w-5"/>
                     </button>
-                    <button onClick={() => setView('binned')} aria-label="Binned notes" className={`rounded-md p-2 ${view === 'binned' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+                    <button type='button' onClick={() => setView('binned')} aria-label="Binned notes" className={`rounded-md p-2 ${view === 'binned' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                         <Trash2 className="h-5 w-5"/>
                     </button>
                 </nav>
@@ -286,7 +286,7 @@ export const Dashboard = () => {
                                     className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 sm:text-base"
                                 />
                             </div>
-                            <button onClick={handleProfile} className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">profile<CircleUserRound className="h-5 w-5"/></button>
+                            <button type='button' onClick={handleProfile} className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">profile<CircleUserRound className="h-5 w-5"/></button>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-6 lg:grid-cols-3 lg:p-8 xl:grid-cols-4">
@@ -351,10 +351,10 @@ export const Dashboard = () => {
                         (view === 'all') ?
                         (   
                             <div>
-                                <button onClick={handleImportClick} aria-label="Import note" className="fixed bottom-6 right-24 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-28">
+                                <button type='button' onClick={handleImportClick} aria-label="Import note" className="fixed bottom-6 right-24 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-28">
                                     <Upload className="h-5 w-5"/>
                                 </button>
-                                <button onClick={handleNoteCreation} aria-label="Create note" className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
+                                <button type='button' onClick={handleNoteCreation} aria-label="Create note" className="fixed bottom-6 right-6 rounded-full bg-gray-900 p-4 text-white shadow-lg hover:bg-gray-800 sm:bottom-8 sm:right-8">
                                     <StickyNotePlus className="h-5 w-5"/>
                                 </button>
                             </div>
