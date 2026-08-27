@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { logout, signup, signin } from '../services/authService'
+import { connectSocket , disconnectSocket } from '../utils/socket'
+import { connect } from 'socket.io-client'
 
 /* creating auth store with state and certain hooks to change state */
 /* assuming backend signup and signin controllers return user object*/
@@ -13,6 +15,13 @@ const getStoredUser = () => {
         return null   // handles corrupted/malformed JSON gracefully
     }
 }
+
+/* module level call to keep socket connectivity after page refresh */
+/* apparently everything will go to shit after a refresh and signin signup won't happen so socket is screwed otherwise */
+
+const token = localStorage.getItem('access_token')
+if (token)
+    connectSocket(token)
 
 const useAuthStore = create((set) => ({
     
@@ -30,6 +39,7 @@ const useAuthStore = create((set) => ({
             const res = await signup(user)
             localStorage.setItem('access_token',res.data.access_token)
             localStorage.setItem('user', JSON.stringify(res.data.user))
+            connectSocket(res.data.access_token)
             set({isAuthenticated: true, token: res.data.access_token, isLoading: false, user: res.data.user})
         }
         catch(err) {
@@ -45,6 +55,7 @@ const useAuthStore = create((set) => ({
             const res = await signin(user)
             localStorage.setItem('access_token',res.data.access_token)
             localStorage.setItem('user', JSON.stringify(res.data.user))
+            connectSocket(res.data.access_token)
             set({isAuthenticated: true,token: res.data.access_token, isLoading: false, user: res.data.user})
         }
         catch(err) {
@@ -69,6 +80,7 @@ const useAuthStore = create((set) => ({
         finally {
             localStorage.removeItem('access_token')
             localStorage.removeItem('user')
+            disconnectSocket()
             set({isAuthenticated: false, isLoading: false, user: null, token: null})
         }
     }

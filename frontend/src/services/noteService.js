@@ -24,3 +24,17 @@ export const getAllNotes = async(note_id) => {
     const res = await axiosInstance.get('/notes/')
     return res
 }
+
+export const exportNote = async(note_id) => {
+    const res = axiosInstance.get(`/notes/export/${note_id}`,{
+        responseType: 'blob'
+    })
+    return res
+}
+
+export const importNote = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await axiosInstance.post('/notes/import', formData);
+  return res
+}

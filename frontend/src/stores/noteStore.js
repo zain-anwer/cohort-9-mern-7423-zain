@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { createNote, deleteNote, updateNote, getNote, getAllNotes } from '../services/noteService.js'
+import { createNote, deleteNote, updateNote, getNote, getAllNotes, exportNote, importNote } from '../services/noteService.js'
+import { getSocket } from '../utils/socket.js'
 
 let latestRequestId = 0
 
@@ -8,13 +9,54 @@ const useNoteStore = create((set,get) => ({
     notes: [],
     error: null,
     
+    initSocketListeners: () => {
+        let socket = getSocket()
+        if (!socket)
+            return
+        socket.off('note:creation')
+        socket.off('note:updation')
+        socket.off('note:deletion')
+
+        socket.on('note:creation',(created_note) => { 
+            const exists = get().notes.some((note) => note._id === created_note._id)
+            if (!exists)
+                set({notes:[...get().notes,created_note]})
+        })
+
+        socket.on('note:updation',(updated_note) => {
+            const existing_note = get().notes.find((note) => note._id === updated_note._id)
+            if (!existing_note) {
+                set({notes: [...get().notes, updated_note]})
+                return
+            }
+            if (updated_note.version > existing_note.version)
+                set({notes: get().notes.map((note) => (note._id === updated_note._id) ? updated_note : note)})
+        })
+
+        socket.on('note:deletion',(deleted_note_id) => {
+            set({notes: get().notes.filter((note) => note._id != deleted_note_id)})
+        })
+    },
+
+    cleanSocketListeners: () => {
+        let socket = getSocket()
+        if (!socket) 
+            return
+
+        socket.off('note:creation')
+        socket.off('note:updation')
+        socket.off('note:deletion')
+    },
+
     createNote: async(note) => {
 
         set({error: null})
 
         try {
             const res = await createNote(note)
-            set({notes: [...get().notes,res.data.created_note]})
+            const exists = get().notes.some((note) => note._id === res.data.created_note._id)
+            if (!exists)
+                set({notes: [...get().notes,res.data.created_note]})
             return res.data.created_note
         }
         catch(err) {
@@ -68,23 +110,73 @@ const useNoteStore = create((set,get) => ({
     },
 
     getAllNotes: async() => {
-        
+
         const requestId = ++latestRequestId
         set({error: null})
 
-        try{
+        const notesAtStart = new Map(get().notes.map((n) => [n._id, n.version]))
+
+        try {
             const res = await getAllNotes()
-            if (requestId === latestRequestId) {
-               
-                set({notes: res.data})
-            }
+            if (requestId !== latestRequestId) return // superseded by a newer call
+
+            const currentLocal = get().notes
+            const currentLocalMap = new Map(currentLocal.map((n) => [n._id, n]))
+
+            const deletedDuringFlight = new Set(
+                [...notesAtStart.keys()].filter((id) => !currentLocalMap.has(id))
+            )
+
+            const merged = res.data
+                .filter((note) => !deletedDuringFlight.has(note._id))
+                .map((note) => {
+                    const local = currentLocalMap.get(note._id)
+                    return (local && local.version > note.version) ? local : note
+                })
+
+            const mergedIds = new Set(merged.map((n) => n._id))
+            const createdDuringFlight = currentLocal.filter(
+                (n) => !mergedIds.has(n._id) && !notesAtStart.has(n._id)
+            )
+
+            set({notes: [...merged, ...createdDuringFlight]})
         }
-        catch(err)
-        { 
+        catch(err) {
             if (requestId === latestRequestId) {
                 set({error: err.response?.data?.message || 'Notes Retrieval Failed'})
                 throw err
             }
+        }
+    },
+
+    exportNote: async(note_id) => {
+
+        set({error: null})
+
+        try {
+            const res = await exportNote(note_id)
+            return res
+        }
+        catch(err) {
+            set({error: err.response?.data?.message || 'Note Export Failed'})
+            throw err
+        }
+    },
+
+    importNote: async(file) => {
+
+        set({error: null})
+
+        try {
+            const res = await importNote(file)
+            const exists = get().notes.some((note) => note._id === res.data.created_note._id)
+            if (!exists)
+                set({notes: [...get().notes,res.data.created_note]})
+            return res.data.created_note
+        }
+        catch(err) {
+            set({error: err.response?.data?.message || 'Note Import Failed'})
+            throw err
         }
     }
 }))

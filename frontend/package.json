@@ -20,6 +20,7 @@
     "react-hot-toast": "^2.6.0",
     "react-quill-new": "^3.8.3",
     "react-router-dom": "^7.18.2",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.3.3",
     "zustand": "^5.0.15"
   },
@@ -35,6 +36,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "babel-jest": "^30.4.1",
+    "babel-plugin-transform-vite-meta-env": "^1.0.3",
     "eslint": "^10.8.0",
     "eslint-plugin-jest-dom": "^5.10.1",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -44,6 +46,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
+    "jest-location-mock": "^4.0.1",
     "vite": "^8.2.0"
   }
 }

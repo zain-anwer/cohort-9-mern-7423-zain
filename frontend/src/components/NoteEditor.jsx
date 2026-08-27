@@ -1,5 +1,5 @@
 import { useState , useRef, useEffect } from 'react'
-import { CircleX, Pencil, Trash2 } from 'lucide-react'
+import { CircleX, Pencil, Trash2, Archive, ArchiveRestore, Download } from 'lucide-react'
 import ReactQuill from 'react-quill-new'
 import toast from 'react-hot-toast'
 
@@ -13,7 +13,7 @@ const modules = {
     ]
 }
 
-export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnly}) => {
+export const NoteEditor = ({note,onSave,onDelete,onArchive,onRestore,onExport,isPermanentDelete,onClose,isReadOnly,setIsReadOnly}) => {
 
     const [title,setTitle] = useState(note?.title ?? "Untitled")
     const [content,setContent] = useState(note?.content ?? "")
@@ -34,6 +34,10 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
             return
         if (title == note.title && content == note.content)
             return
+        if (title.trim() === '') {
+            setIsSaving('title required')
+            return
+        }
 
         setIsSaving("saving...")
         const timeout = setTimeout(async() => {
@@ -67,7 +71,16 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
         setIsReadOnly(false)
     }
     const handleDeletion = () => {
-        onDelete(note._id)
+        onDelete(note)
+    }
+    const handleArchive = () => {
+        onArchive()
+    }
+    const handleRestore = () => {
+        onRestore()
+    }
+    const handleExport = () => {
+        onExport()
     }
     const handleClose = () => {
         onClose()
@@ -79,17 +92,39 @@ export const NoteEditor = ({note,onSave,onDelete,onClose,isReadOnly,setIsReadOnl
                 <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <button onClick={handleClose} aria-label="Close" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"><CircleX className="h-5 w-5"/></button>
+                        {
+                            isReadOnly && (
+                                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">Read only</span>
+                            )
+                        }
                         <span className="text-xs text-gray-400">{isSaving}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {
-                            isReadOnly && (
+                            onArchive && (
+                                <button onClick={handleArchive} aria-label="Archive note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                                    <Archive className="h-4 w-4"/>
+                                </button>
+                            )
+                        }
+                        {
+                            onRestore && (
+                                <button onClick={handleRestore} aria-label="Restore note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                                    <ArchiveRestore className="h-4 w-4"/>
+                                </button>
+                            )
+                        }
+                        <button onClick={handleExport} aria-label="Export note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                            <Download className="h-4 w-4"/>
+                        </button>
+                        {
+                            isReadOnly && !isPermanentDelete && (
                                 <button onClick={handleModeChange} aria-label="Edit note" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900">
                                     <Pencil className="h-4 w-4"/>
                                 </button>
                             )
                         }
-                        <button onClick={handleDeletion} aria-label="Delete note" className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5"/></button>
+                        <button onClick={handleDeletion} aria-label={isPermanentDelete ? "Delete note permanently" : "Move note to bin"} className="rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5"/></button>
                     </div>
                 </div>
                 <input type='text' value={title} readOnly={isReadOnly} onChange={handleTitleChange} className={`mb-3 w-full border-b border-gray-200 pb-2 text-lg font-medium text-gray-900 sm:text-xl ${isReadOnly ? '' : 'focus:border-gray-900 focus:outline-none'}`}/>
