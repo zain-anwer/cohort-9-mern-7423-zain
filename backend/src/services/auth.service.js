@@ -3,7 +3,7 @@ import revokedTokenModel from '../models/token.model.js'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 dotenv.config()
 
 /* adding an explicit error to track JWT SECRET read fails */
@@ -150,7 +150,7 @@ const signinService = async (email,password) => {
  
 const logoutService = async (token) => {
     
-    var decoded = null
+    let decoded = null
     
     try {
         decoded = jwt.verify(token,JWT_SECRET)

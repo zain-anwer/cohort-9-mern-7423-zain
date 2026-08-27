@@ -1,4 +1,4 @@
-import http from 'http'
+import http from 'node:http'
 import app from './app.js'
 import dotenv from 'dotenv'
 import connectDB from './configs/db.js'

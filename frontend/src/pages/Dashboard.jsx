@@ -13,7 +13,6 @@ import toast from "react-hot-toast"
 
 import useAuthStore from "../stores/authStore"
 import useNoteStore from "../stores/noteStore"
-import _default from "dompurify"
 
 /* this helper function will remove html tags from rich text produced by quill */
 const stripHtml = (html) => {

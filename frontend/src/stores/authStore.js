@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { logout, signup, signin } from '../services/authService'
 import { connectSocket , disconnectSocket } from '../utils/socket'
-import { connect } from 'socket.io-client'
 
 /* creating auth store with state and certain hooks to change state */
 /* assuming backend signup and signin controllers return user object*/

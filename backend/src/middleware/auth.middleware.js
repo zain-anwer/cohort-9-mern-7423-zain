@@ -30,7 +30,7 @@ const authMiddleware = async (req,res,next) => {
         return next(err)
     }
 
-    var payload = null
+    let payload = null
     try {
         payload = jwt.verify(token,JWT_SECRET)
     }

@@ -43,7 +43,7 @@ export const NoteEditor = ({note,onSave,onDelete,onArchive,onRestore,onExport,is
         const timeout = setTimeout(async() => {
             const thisSaveId = ++saveIdRef.current
             try {
-                const updated = await onSave(note._id,{...note,title:title,content:content})
+                await onSave(note._id,{...note,title:title,content:content})
                 if (thisSaveId === saveIdRef.current) {
                     setIsSaving("saved")
                 }

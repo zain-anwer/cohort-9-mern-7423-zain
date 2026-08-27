@@ -83,16 +83,16 @@ export const AuthPage = () => {
                     {  
                         !isSigninPage ?  
                         (  
-                        <>  
-                            <div className="flex flex-col gap-1">  
-                                <label htmlFor="name" className="text-sm font-medium text-gray-700">Name</label>  
-                                <div className="relative">
-                                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"/>
-                                    <input id="name" type='text' value={name} onChange={handleName}   
-                                    placeholder='Rene Descartes' className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" />  
-                                </div>
-                            </div>  
-                        </>  
+                          
+                        <div className="flex flex-col gap-1">  
+                            <label htmlFor="name" className="text-sm font-medium text-gray-700">Name</label>  
+                            <div className="relative">
+                                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"/>
+                                <input id="name" type='text' value={name} onChange={handleName}   
+                                placeholder='Rene Descartes' className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" />  
+                            </div>
+                        </div>  
+                          
                         ) : <></>      
                     }  
                     <div className="flex flex-col gap-1">  

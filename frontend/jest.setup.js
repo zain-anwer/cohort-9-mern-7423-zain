@@ -1,6 +1,6 @@
 // jest.setup.js
 import '@testing-library/jest-dom'
-import { TextEncoder, TextDecoder } from 'util'
+import { TextEncoder, TextDecoder } from 'node:util'
 import 'jest-location-mock'
 
 global.TextEncoder = TextEncoder
