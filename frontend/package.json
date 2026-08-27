@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "jest",
+    "test": "jest --coverage",
+    "posttest": "node fix-lcov-paths.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
