@@ -35,7 +35,7 @@ const signupService = async (name,email,password) =>
         throw err
     }
 
-    const email_regex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/
+    const email_regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
     
     if (!email_regex.test(email))
     {
