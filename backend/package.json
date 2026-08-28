@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "test": "mocha  \"tests/**/*.test.js\"",
+    "test": "c8 --reporter=lcov mocha \"tests/**/*.test.js\"",
+    "posttest": "node fix-lcov-paths.js",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
@@ -32,6 +33,7 @@
     "bcrypt@6.0.0": true
   },
   "devDependencies": {
+    "c8": "^12.0.0",
     "chai": "^6.2.2",
     "mocha": "^11.7.6",
     "nodemon": "^3.1.14",

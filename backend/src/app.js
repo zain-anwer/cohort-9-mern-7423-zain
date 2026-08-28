@@ -21,6 +21,9 @@ if (!CLIENT_URL) {
     throw new Error('CLIENT_URL environment variable is required')
 }
 
+// disabling header to prevent backend framework information disclosure (sonarqube says itss baddd)
+app.disable('x-powered-by')
+
 
 // mounting middleware
 app.use(cors({

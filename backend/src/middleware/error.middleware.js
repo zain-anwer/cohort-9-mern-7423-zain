@@ -5,13 +5,9 @@ export const errorMiddleware = (err,req,res,next) =>
     req.log?.error(err)
     
     let statusCode = err.statusCode || 500
-    let message = 'Internal Server Error'
+    let message
 
-    if (err.name === 'CastError') {
-        statusCode = 400
-        message = 'Invalid request data'
-    }
-    else if (err.name === 'ValidationError') {
+    if (err.name === 'CastError' || err.name === 'ValidationError') {
         statusCode = 400
         message = 'Invalid request data'
     }

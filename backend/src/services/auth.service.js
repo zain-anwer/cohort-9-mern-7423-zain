@@ -3,7 +3,7 @@ import revokedTokenModel from '../models/token.model.js'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 dotenv.config()
 
 /* adding an explicit error to track JWT SECRET read fails */
@@ -35,7 +35,7 @@ const signupService = async (name,email,password) =>
         throw err
     }
 
-    const email_regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    const email_regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
     
     if (!email_regex.test(email))
     {
@@ -150,7 +150,7 @@ const signinService = async (email,password) => {
  
 const logoutService = async (token) => {
     
-    var decoded = null
+    let decoded = null
     
     try {
         decoded = jwt.verify(token,JWT_SECRET)

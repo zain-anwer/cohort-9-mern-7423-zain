@@ -7,34 +7,34 @@ export const NoteCard = ({title,content,onClick,isPinned,onPin,onArchive,onResto
             <div className="mb-2 flex items-center justify-end gap-1">
                 {
                     onPin && (
-                        <button onClick={onPin} aria-label={isPinned ? "Unpin note" : "Pin note"} className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
+                        <button type='button' onClick={onPin} aria-label={isPinned ? "Unpin note" : "Pin note"} className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
                             {isPinned ? <PinOff className="h-4 w-4"/> : <Pin className="h-4 w-4"/>}
                         </button>
                     )
                 }
                 {
                     onArchive && (
-                        <button onClick={onArchive} aria-label="Archive note" className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
+                        <button type='button' onClick={onArchive} aria-label="Archive note" className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
                             <Archive className="h-4 w-4"/>
                         </button>
                     )
                 }
                 {
                     onRestore && (
-                        <button onClick={onRestore} aria-label="Restore note" className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
+                        <button type='button' onClick={onRestore} aria-label="Restore note" className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900">
                             <ArchiveRestore className="h-4 w-4"/>
                         </button>
                     )
                 }
                 {
                     onDelete && (
-                        <button onClick={onDelete} aria-label={isPermanentDelete ? "Delete note permanently" : "Move note to bin"} className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600">
+                        <button type='button' onClick={onDelete} aria-label={isPermanentDelete ? "Delete note permanently" : "Move note to bin"} className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600">
                             <Trash2 className="h-4 w-4"/>
                         </button>
                     )
                 }
             </div>
-            <button onClick={onClick} className="block w-full cursor-pointer text-left">
+            <button type='button' onClick={onClick} className="block w-full cursor-pointer text-left">
                 <h2 className="mb-1 truncate text-base font-medium text-gray-900 sm:text-lg">{title}</h2>
                 <div
                     className="line-clamp-3 text-sm text-gray-500 sm:line-clamp-4"
