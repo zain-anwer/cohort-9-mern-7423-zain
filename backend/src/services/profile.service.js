@@ -26,7 +26,7 @@ const profileNameChangeService = async (user_id,new_name) => {
 
 const profilePasswordChangeService = async (user_id,old_password,new_password) => {
     
-    if (old_password === new_password || new_password.length < 8)
+    if (typeof old_password !== 'string' || typeof new_password !== 'string' || old_password === new_password || new_password.length < 8)
     {
         const err = new Error('Please Enter Different Password')
         err.statusCode = 400
@@ -59,7 +59,16 @@ const profilePasswordChangeService = async (user_id,old_password,new_password) =
         throw err
     }
 
-    const encrypted_password = await bcrypt.hash(new_password,10)
+    let encrypted_password
+
+    try {
+        encrypted_password = await bcrypt.hash(new_password,10)
+    }
+    catch(error) {
+        const err = new Error('Error In Password Encryption')
+        err.statusCode = 500
+        throw err
+    }
     
     try {
         await userModel.findOneAndUpdate(
@@ -122,7 +131,12 @@ const profilePictureUpdateService = async (user_id, image, mimetype) => {
         )
         profileEvent.emit('update:picture',{user_id:user_id,new_image:secure_url,updated_at:result.updatedAt})
         if (oldPublicId) {
-            await cloudinary.uploader.destroy(oldPublicId)
+            try {
+                await cloudinary.uploader.destroy(oldPublicId)
+            }
+            catch (err) {
+                logger.error({ err }, 'Failed to clean up old profile picture')
+            }
         }
     }
     catch (error) {
