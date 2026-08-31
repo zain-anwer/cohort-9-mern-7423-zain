@@ -6,7 +6,6 @@ dotenv.config()
 
 let io = null
 
-
 const CLIENT_URL = process.env.CLIENT_URL
 
 if (!CLIENT_URL) {

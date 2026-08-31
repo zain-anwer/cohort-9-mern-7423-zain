@@ -1,6 +1,7 @@
 import http from 'node:http'
 import app from './app.js'
 import dotenv from 'dotenv'
+import logger from './configs/logger.js'
 import connectDB from './configs/db.js'
 import { initializeSocket } from './socket/socket.js'
 import './socket/handlers/note.broadcast.handler.js'
@@ -15,7 +16,7 @@ try {
 }
 catch(err)
 {
-    console.log('Error in setting up database or accessing PORT number')
+    logger.error({ err }, 'Error in setting up database or accessing PORT number')
     /* process.exit(code) if code 0 successful execution if 1 abnormal termination */
     process.exit(1)
 }

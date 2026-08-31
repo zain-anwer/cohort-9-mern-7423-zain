@@ -7,6 +7,14 @@ const usersSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        profile_picture: {
+            type: String,
+            default: null
+        },
+        public_id: {
+            type: String,
+            default: null
+        },
         email:
         {
             type: String,
