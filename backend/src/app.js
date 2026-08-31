@@ -5,6 +5,7 @@ import cors from 'cors'
 import authRoutes from './routes/auth.routes.js'
 import noteRoutes from './routes/notes.routes.js'
 import healthRoute from './routes/health.routes.js'
+import profileRoutes from './routes/profile.routes.js'
 import logger from './configs/logger.js'
 import pinoHttp from 'pino-http'
 import dotenv from 'dotenv'
@@ -37,6 +38,7 @@ app.use(pinoHttp({logger}))
 app.use('/api/auth',authRoutes)
 app.use('/api/notes',noteRoutes)
 app.use('/api',healthRoute)
+app.use('/api/profile',profileRoutes)
 
 // adding error middleware at the end
 app.use(errorMiddleware)
