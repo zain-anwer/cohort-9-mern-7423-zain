@@ -1,8 +1,32 @@
 import toast from "react-hot-toast"
 import useAuthStore from "../stores/authStore"
+import useProfileStore from "../stores/profileStore"
 import { CircleX } from "lucide-react"
 
-export const Profile = ({name,email,onClose}) => {
+export const Profile = ({onClose}) => {
+    
+    const user = useProfileStore((state) => state.user)
+    const initSocketListeners = useProfileStore((state) => state.initSocketListeners)
+    const cleanSocketListeners = useProfileStore((state) => state.cleanSocketListeners)
+    const changeName = useProfileStore((state) => state.changeName)
+    const changePassword = useProfileStore((state) => state.changePassword)
+    const deleteAccount = useProfileStore((state) => state.deleteAccount)
+    const updateProfilePicture = useProfileStore((state) => state.updateProfilePicture)
+    const deleteProfilePicture = useProfileStore((state) => state.deleteProfilePicture)
+    
+    useEffect(() => {
+        const initialize = async () => {
+            await fetchUser()
+            initSocketListeners()
+        }
+
+        initialize()
+
+        return () => {
+            cleanSocketListeners()
+        }
+    }, [])
+
     const logout = useAuthStore((state) => state.logout)
 
     const handleLogout = async() => {
@@ -32,8 +56,8 @@ export const Profile = ({name,email,onClose}) => {
                 />
 
                 <div className="mb-6 flex flex-col gap-2">
-                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">Name: {name}</h3>
-                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">Email: {email}</h3>
+                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">Name: {user.name}</h3>
+                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">Email: {user.email}</h3>
                 </div>
 
                 <button type='button' onClick={handleLogout} className="w-full rounded-md bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 sm:text-base">

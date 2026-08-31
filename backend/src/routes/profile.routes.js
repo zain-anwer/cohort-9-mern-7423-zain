@@ -1,8 +1,8 @@
 import express from 'express'
 import multer from 'multer'
 import authMiddleware from '../middleware/auth.middleware.js'
-import {profileNameChangeController, profilePasswordChangeController,
-    profileDeleteController,
+import {profileFetchController,profileNameChangeController, 
+    profilePasswordChangeController,profileDeleteController,
     profilePictureUpdateController, profilePictureDeleteController
 } from '../controllers/profile.controller.js'
 
@@ -34,6 +34,7 @@ const router = express.Router()
 /* since all these will be protected routes as welllll */
 router.use(authMiddleware)
 
+router.get('/',profileFetchController)
 router.put('/name',profileNameChangeController)
 router.put('/password',profilePasswordChangeController)
 router.delete('/',profileDeleteController)

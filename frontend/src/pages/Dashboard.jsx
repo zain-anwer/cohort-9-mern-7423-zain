@@ -23,7 +23,6 @@ const stripHtml = (html) => {
 
 export const Dashboard = () => {
 
-    const user = useAuthStore((state) => state.user)
     const notes = useNoteStore((state) => state.notes)
     const getAllNotes = useNoteStore((state) => state.getAllNotes)
     const createNote = useNoteStore((state) => state.createNote)
@@ -385,10 +384,7 @@ export const Dashboard = () => {
                 ) 
             }
             {
-                isProfileOpen && <Profile 
-                                    name={user.name} 
-                                    email={user.email} 
-                                    onClose={() => {setIsProfileOpen(false)}}/>
+                isProfileOpen && <Profile onClose={() => {setIsProfileOpen(false)}}/>
             }
        </>
     )

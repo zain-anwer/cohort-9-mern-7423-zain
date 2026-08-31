@@ -5,20 +5,57 @@ import { getIO } from '../socket/socket.js'
 import logger from '../configs/logger.js'
 import bcrypt from 'bcrypt'
 
-const profileNameChangeService = async (user_id,new_name) => {
+const profileFetchService = async (user_id) => {
+    let user
+
     try {
-        const user = await userModel.findOneAndUpdate(
+        user = await userModel.findOne({_id:user_id})
+    }
+    catch(error) {
+        const err = new Error('Error Accessing User Record')
+        err.statusCode = 500
+        throw err
+    }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
+    return {name:user.name,email:user.email,profile_picture:user.profile_picture}
+}
+
+const profileNameChangeService = async (user_id,new_name) => {
+
+    if (typeof new_name !== 'string' || !new_name.trim()) {
+        const err = new Error('Invalid Name')
+        err.statusCode = 400
+        throw err
+    }
+
+    let user
+
+    try {
+        user = await userModel.findOneAndUpdate(
             {'_id': user_id},
             {$set: {'name':new_name}},
             {new: true, runValidators: true}
         )
-        profileEvent.emit('update:name',{user_id:user_id,new_name:new_name,updated_at:user.updatedAt})
     }
     catch(error) {
         const err = new Error('Error Updating Name')
         err.statusCode = 500
         throw err
     }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
+    profileEvent.emit('update:name',{user_id:user_id,new_name:new_name,updated_at:user.updatedAt})
 }
 
 /* old and new passwords should not be the same */
@@ -44,6 +81,13 @@ const profilePasswordChangeService = async (user_id,old_password,new_password) =
         err.statusCode = 500
         throw err
     }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
     try {
         match = await bcrypt.compare(old_password,user.password)
     }
@@ -90,8 +134,24 @@ const profilePasswordChangeService = async (user_id,old_password,new_password) =
     }
 }
 const profileDeleteService = async (user_id) => {
+    let user
+
     try {
-        const user = await userModel.findOne({'_id': user_id})
+        user = await userModel.findOne({'_id': user_id})
+    }
+    catch (error) {
+        const err = new Error('Error in deleting user account')
+        err.statusCode = 500
+        throw err
+    }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
+    try {
         if (user.public_id) {
             await cloudinary.uploader.destroy(user.public_id)
         }
@@ -111,13 +171,27 @@ const profileDeleteService = async (user_id) => {
 }
 
 const profilePictureUpdateService = async (user_id, image, mimetype) => {
+    let user
+
     try {
         const dataUri = `data:${mimetype};base64,${image.toString('base64')}`
-        const user = await userModel.findOne({ _id: user_id })
+        user = await userModel.findOne({ _id: user_id })
+    }
+    catch (error) {
+        const err = new Error('Error updating profile picture')
+        err.statusCode = 500
+        throw err
+    }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+
+    try {
         const oldPublicId = user.public_id
-        const { secure_url, public_id } =
-        
-        await cloudinary.uploader.upload(dataUri)
+        const { secure_url, public_id } = await cloudinary.uploader.upload(dataUri)
 
         const result = await userModel.findOneAndUpdate(
             { _id: user_id },
@@ -138,6 +212,7 @@ const profilePictureUpdateService = async (user_id, image, mimetype) => {
                 logger.error({ err }, 'Failed to clean up old profile picture')
             }
         }
+        return secure_url
     }
     catch (error) {
         const err = new Error('Error updating profile picture')
@@ -148,9 +223,24 @@ const profilePictureUpdateService = async (user_id, image, mimetype) => {
 
 const profilePictureDeleteService = async (user_id) => {
 
+    let user
+
     try {
-        const user = await userModel.findOne({_id:user_id})
-        
+        user = await userModel.findOne({_id:user_id})
+    }
+    catch(error) {
+        const err = new Error('Error Deleting Profile Picture')
+        err.statusCode = 500
+        throw err
+    }
+
+    if (!user) {
+        const err = new Error('User Not Found')
+        err.statusCode = 404
+        throw err
+    }
+    
+    try {
         if (user.public_id) {
             await cloudinary.uploader.destroy(user.public_id)
             const result = await userModel.findOneAndUpdate(
@@ -169,6 +259,7 @@ const profilePictureDeleteService = async (user_id) => {
 }
 
 export default {
+    profileFetchService,
     profileNameChangeService,
     profilePasswordChangeService,
     profileDeleteService,
