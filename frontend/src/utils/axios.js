@@ -3,10 +3,7 @@
 import axios from 'axios'
 
 const axiosInstance = axios.create({
-    baseURL: `${import.meta.env.VITE_BACKEND_URL}/api`,
-    headers: {
-        "Content-Type" : "application/json"
-    }
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}/api`
 })
 
 /* interceptors change the config object created on API call and sit between the frontend and backend */
@@ -15,7 +12,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem('access_token')
     if (token)
-        config.headers = {'authorization' : `Bearer ${token}`}
+        config.headers.authorization = `Bearer ${token}`
     return config
 })
 

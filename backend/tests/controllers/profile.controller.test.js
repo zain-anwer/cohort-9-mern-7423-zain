@@ -2,9 +2,9 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import profileService from '../../src/services/profile.service.js'
 import {
+    profileFetchController,
     profileNameChangeController,
     profilePasswordChangeController,
-    profileDeleteController,
     profilePictureUpdateController,
     profilePictureDeleteController
 } from '../../src/controllers/profile.controller.js'
@@ -28,6 +28,31 @@ describe('profile.controller', () => {
 
     afterEach(() => {
         sandbox.restore()
+    })
+
+    describe('profileFetchController', () => {
+        it('responds 200 with the user on success', async () => {
+            const user = { id: 'u1', name: 'John' }
+            sandbox.stub(profileService, 'profileFetchService').resolves(user)
+
+            await profileFetchController(req, res, next)
+
+            expect(profileService.profileFetchService.calledWith('u1')).to.be.true
+            expect(res.status.calledWith(200)).to.be.true
+            expect(res.json.calledWith({ user })).to.be.true
+            expect(next.called).to.be.false
+        })
+
+        it('forwards errors to next', async () => {
+            const error = new Error('Error Fetching User')
+            error.statusCode = 500
+            sandbox.stub(profileService, 'profileFetchService').rejects(error)
+
+            await profileFetchController(req, res, next)
+
+            expect(next.calledWith(error)).to.be.true
+            expect(res.status.called).to.be.false
+        })
     })
 
     describe('profileNameChangeController', () => {
@@ -80,43 +105,36 @@ describe('profile.controller', () => {
         })
     })
 
-    describe('profileDeleteController', () => {
-        it('responds 200 on success', async () => {
-            sandbox.stub(profileService, 'profileDeleteService').resolves()
-
-            await profileDeleteController(req, res, next)
-
-            expect(profileService.profileDeleteService.calledWith('u1')).to.be.true
-            expect(res.status.calledWith(200)).to.be.true
-            expect(res.json.calledWith({ message: 'Account Deleted Successfully' })).to.be.true
-        })
-
-        it('forwards errors to next', async () => {
-            const error = new Error('Error in deleting user account')
-            error.statusCode = 500
-            sandbox.stub(profileService, 'profileDeleteService').rejects(error)
-
-            await profileDeleteController(req, res, next)
-
-            expect(next.calledWith(error)).to.be.true
-        })
-    })
-
     describe('profilePictureUpdateController', () => {
-        it('responds 200 on success', async () => {
+        it('responds 200 with the profile picture url on success', async () => {
             req.file = { buffer: Buffer.from('fake'), mimetype: 'image/png' }
-            sandbox.stub(profileService, 'profilePictureUpdateService').resolves()
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
 
             await profilePictureUpdateController(req, res, next)
 
             expect(profileService.profilePictureUpdateService.calledWith('u1', req.file.buffer, 'image/png')).to.be.true
             expect(res.status.calledWith(200)).to.be.true
-            expect(res.json.calledWith({ message: 'Profile Picture Updated Successfully' })).to.be.true
+            expect(res.json.calledWith({
+                message: 'Profile Picture Updated Successfully',
+                profile_picture: 'https://cdn.example.com/u1.png'
+            })).to.be.true
         })
 
         it('calls next with a 400 error when no file is present', async () => {
             req.file = undefined
-            sandbox.stub(profileService, 'profilePictureUpdateService').resolves()
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
+
+            await profilePictureUpdateController(req, res, next)
+
+            expect(profileService.profilePictureUpdateService.called).to.be.false
+            expect(next.calledOnce).to.be.true
+            const err = next.firstCall.args[0]
+            expect(err.statusCode).to.equal(400)
+        })
+
+        it('calls next with a 400 error when the file has no mimetype', async () => {
+            req.file = { buffer: Buffer.from('fake'), mimetype: undefined }
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
 
             await profilePictureUpdateController(req, res, next)
 

@@ -15,11 +15,6 @@ export const profilePasswordChangeService = async (old_password,new_password) =>
     return res
 }
 
-export const profileDeleteService = async () => {
-    const res = await axiosInstance.delete('/profile/')
-    return res
-}
-
 export const profilePictureUpdateService = async (image) => {
     const formData = new FormData()
     formData.append('file',image)

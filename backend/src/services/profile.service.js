@@ -133,51 +133,16 @@ const profilePasswordChangeService = async (user_id,old_password,new_password) =
         logger.error({ err }, 'Failed to force-disconnect sockets after password change')
     }
 }
-const profileDeleteService = async (user_id) => {
-    let user
-
-    try {
-        user = await userModel.findOne({'_id': user_id})
-    }
-    catch (error) {
-        const err = new Error('Error in deleting user account')
-        err.statusCode = 500
-        throw err
-    }
-
-    if (!user) {
-        const err = new Error('User Not Found')
-        err.statusCode = 404
-        throw err
-    }
-
-    try {
-        if (user.public_id) {
-            await cloudinary.uploader.destroy(user.public_id)
-        }
-        await userModel.deleteOne({'_id': user_id})
-
-        try {
-            getIO().in(`user_id:${user_id}`).disconnectSockets(true)
-        } catch (err) {
-            logger.error({ err }, 'Failed to force-disconnect sockets after account deletion')
-        }
-    }
-    catch (error) {
-        const err = new Error('Error in deleting user account')
-        err.statusCode = 500
-        throw err
-    }
-}
 
 const profilePictureUpdateService = async (user_id, image, mimetype) => {
     let user
-
+    let dataUri
     try {
-        const dataUri = `data:${mimetype};base64,${image.toString('base64')}`
+        dataUri = `data:${mimetype};base64,${image.toString('base64')}`
         user = await userModel.findOne({ _id: user_id })
     }
     catch (error) {
+        logger.error({ err: error }, 'Cloudinary/profile picture update failed')
         const err = new Error('Error updating profile picture')
         err.statusCode = 500
         throw err
@@ -215,6 +180,7 @@ const profilePictureUpdateService = async (user_id, image, mimetype) => {
         return secure_url
     }
     catch (error) {
+        logger.error({ err: error }, 'Cloudinary/profile picture update failed')
         const err = new Error('Error updating profile picture')
         err.statusCode = 500
         throw err
@@ -262,7 +228,6 @@ export default {
     profileFetchService,
     profileNameChangeService,
     profilePasswordChangeService,
-    profileDeleteService,
     profilePictureUpdateService,
     profilePictureDeleteService
 }

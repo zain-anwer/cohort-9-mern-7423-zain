@@ -41,6 +41,30 @@ describe('profile.routes', () => {
         sandbox.restore()
     })
 
+    describe('GET /api/profile', () => {
+        it('returns 200 with the user on success', async () => {
+            const app = await buildApp(authenticatedMiddleware)
+            const user = { id: 'u1', name: 'John' }
+            sandbox.stub(profileService, 'profileFetchService').resolves(user)
+
+            const res = await request(app).get('/api/profile')
+
+            expect(res.status).to.equal(200)
+            expect(res.body).to.deep.equal({ user })
+        })
+
+        it('forwards service errors through the error middleware', async () => {
+            const app = await buildApp(authenticatedMiddleware)
+            const error = new Error('Error Fetching User')
+            error.statusCode = 500
+            sandbox.stub(profileService, 'profileFetchService').rejects(error)
+
+            const res = await request(app).get('/api/profile')
+
+            expect(res.status).to.equal(500)
+        })
+    })
+
     describe('PUT /api/profile/name', () => {
         it('returns 200 on a successful name change', async () => {
             const app = await buildApp(authenticatedMiddleware)
@@ -95,34 +119,25 @@ describe('profile.routes', () => {
         })
     })
 
-    describe('DELETE /api/profile', () => {
-        it('returns 200 on a successful delete', async () => {
-            const app = await buildApp(authenticatedMiddleware)
-            sandbox.stub(profileService, 'profileDeleteService').resolves()
-
-            const res = await request(app).delete('/api/profile')
-
-            expect(res.status).to.equal(200)
-            expect(res.body).to.deep.equal({ message: 'Account Deleted Successfully' })
-        })
-    })
-
     describe('PUT /api/profile/picture', () => {
-        it('returns 200 when a valid image is uploaded', async () => {
+        it('returns 200 with the profile picture url when a valid image is uploaded', async () => {
             const app = await buildApp(authenticatedMiddleware)
-            sandbox.stub(profileService, 'profilePictureUpdateService').resolves()
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
 
             const res = await request(app)
                 .put('/api/profile/picture')
                 .attach('file', Buffer.from('fake-image-data'), { filename: 'avatar.png', contentType: 'image/png' })
 
             expect(res.status).to.equal(200)
-            expect(res.body).to.deep.equal({ message: 'Profile Picture Updated Successfully' })
+            expect(res.body).to.deep.equal({
+                message: 'Profile Picture Updated Successfully',
+                profile_picture: 'https://cdn.example.com/u1.png'
+            })
         })
 
         it('returns 400 when the mimetype is not allowed', async () => {
             const app = await buildApp(authenticatedMiddleware)
-            sandbox.stub(profileService, 'profilePictureUpdateService').resolves()
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
 
             const res = await request(app)
                 .put('/api/profile/picture')
@@ -134,7 +149,7 @@ describe('profile.routes', () => {
 
         it('returns 400 when no file is attached', async () => {
             const app = await buildApp(authenticatedMiddleware)
-            sandbox.stub(profileService, 'profilePictureUpdateService').resolves()
+            sandbox.stub(profileService, 'profilePictureUpdateService').resolves('https://cdn.example.com/u1.png')
 
             const res = await request(app).put('/api/profile/picture')
 
@@ -157,7 +172,7 @@ describe('profile.routes', () => {
     it('rejects all routes when auth fails', async () => {
         const app = await buildApp(rejectingMiddleware)
 
-        const res = await request(app).delete('/api/profile')
+        const res = await request(app).get('/api/profile')
 
         expect(res.status).to.equal(401)
     })

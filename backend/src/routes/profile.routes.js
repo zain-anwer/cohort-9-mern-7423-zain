@@ -2,7 +2,7 @@ import express from 'express'
 import multer from 'multer'
 import authMiddleware from '../middleware/auth.middleware.js'
 import {profileFetchController,profileNameChangeController, 
-    profilePasswordChangeController,profileDeleteController,
+    profilePasswordChangeController,
     profilePictureUpdateController, profilePictureDeleteController
 } from '../controllers/profile.controller.js'
 
@@ -37,7 +37,6 @@ router.use(authMiddleware)
 router.get('/',profileFetchController)
 router.put('/name',profileNameChangeController)
 router.put('/password',profilePasswordChangeController)
-router.delete('/',profileDeleteController)
 router.put('/picture',upload.single('file'),profilePictureUpdateController)
 router.delete('/picture',profilePictureDeleteController)
 

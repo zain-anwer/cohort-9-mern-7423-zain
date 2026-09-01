@@ -32,16 +32,6 @@ export const profilePasswordChangeController = async (req,res,next) => {
         next(err)
     }
 }
-
-export const profileDeleteController = async (req,res,next) => {
-    try {
-        await profileService.profileDeleteService(req.user.id)
-        res.status(200).json({message: 'Account Deleted Successfully'})
-    }
-    catch(err) {
-        next(err)
-    }
-}
        
 export const profilePictureUpdateController = async (req,res,next) => {
     try {

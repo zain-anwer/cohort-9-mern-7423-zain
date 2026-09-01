@@ -24,11 +24,6 @@ const requestHandler = mockRequestUse.mock.calls[0][0]
 const [responseSuccessHandler, responseErrorHandler] = mockResponseUse.mock.calls[0]
 
 describe('axios instance creation', () => {
-    test('creates the instance with a JSON content-type header', () => {
-        const config = axios.create.mock.calls[0][0]
-        expect(config.headers).toEqual({ 'Content-Type': 'application/json' })
-    })
-
     test('creates the instance with a baseURL pointing at /api', () => {
         const config = axios.create.mock.calls[0][0]
         expect(config.baseURL.endsWith('/api')).toBe(true)

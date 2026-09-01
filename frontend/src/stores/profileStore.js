@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { profileFetchService, profileNameChangeService,
-    profilePasswordChangeService, profileDeleteService,
+    profilePasswordChangeService,
     profilePictureUpdateService, profilePictureDeleteService
 } from "../services/profileService.js"
 import { getSocket } from "../utils/socket"
@@ -18,22 +18,22 @@ const useProfileStore = create((set,get) => ({
         socket.off('picture:updation')
         socket.off('picture:deletion')
 
-        socket.on('name:updation',(name_obj) => {
+        socket.on('name:updation', (new_name, updated_at) => {
             if (!get().user)
                 return
-            set({user: {...get().user,name:name_obj.new_name}})
+            set({user: {...get().user, name: new_name}})
         })
 
-        socket.on('picture:updation',(picture_obj) => {
+        socket.on('picture:updation', (new_image, updated_at) => {
             if (!get().user)
                 return
-            set({user: {...get().user,profile_picture:picture_obj.new_image}})
+            set({user: {...get().user, profile_picture: new_image}})
         })
 
-        socket.on('picture:deletion',(obj) => {
+        socket.on('picture:deletion', (updated_at) => {
             if (!get().user)
                 return
-            set({user: {...get().user,profile_picture:null}})
+            set({user: {...get().user, profile_picture: null}})
         })
     },
 
@@ -71,16 +71,6 @@ const useProfileStore = create((set,get) => ({
             await profilePasswordChangeService(old_password,new_password)
             /* call logout and redirect to signin */
             /* still thinking about whether to do it here or in the modal */
-        }
-        catch(error) {
-            throw error
-        }
-    },
-
-    deleteAccount: async () => {
-        try {
-            await profileDeleteService()
-            /* should logout immediately or manually delete the token perhaps and then just redirect to auth page??? idk */
         }
         catch(error) {
             throw error
