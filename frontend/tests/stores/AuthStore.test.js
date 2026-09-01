@@ -12,6 +12,15 @@ jest.mock('../../src/utils/socket', () => ({
     disconnectSocket: jest.fn()
 }))
 
+const mockClearUser = jest.fn()
+
+jest.mock('../../src/stores/profileStore', () => ({
+    __esModule: true,
+    default: {
+        getState: () => ({ clearUser: mockClearUser })
+    }
+}))
+
 const loadStore = () => {
     let useAuthStore
     jest.isolateModules(() => {
@@ -155,7 +164,7 @@ describe('signin', () => {
 })
 
 describe('logout', () => {
-    test('clears local storage, disconnects the socket and resets state on success', async () => {
+    test('clears local storage, disconnects the socket, clears profile state and resets state on success', async () => {
         localStorage.setItem('access_token', 'abc123')
         const useAuthStore = loadStore()
         logoutService.mockResolvedValueOnce({})
@@ -165,6 +174,7 @@ describe('logout', () => {
         expect(logoutService).toHaveBeenCalledTimes(1)
         expect(localStorage.getItem('access_token')).toBeNull()
         expect(disconnectSocket).toHaveBeenCalledTimes(1)
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(false)
@@ -172,7 +182,7 @@ describe('logout', () => {
         expect(state.isLoading).toBe(false)
     })
 
-    test('still clears local storage, disconnects the socket and resets state when the api call fails', async () => {
+    test('still clears local storage, disconnects the socket, clears profile state and resets state when the api call fails', async () => {
         localStorage.setItem('access_token', 'abc123')
         const useAuthStore = loadStore()
         logoutService.mockRejectedValueOnce({ response: { data: { message: 'Logout endpoint down' } } })
@@ -181,6 +191,7 @@ describe('logout', () => {
 
         expect(localStorage.getItem('access_token')).toBeNull()
         expect(disconnectSocket).toHaveBeenCalledTimes(1)
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(false)
@@ -196,5 +207,6 @@ describe('logout', () => {
         await expect(useAuthStore.getState().logout()).rejects.toThrow('network down')
 
         expect(useAuthStore.getState().error).toBe('Logout Failed')
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
     })
 })

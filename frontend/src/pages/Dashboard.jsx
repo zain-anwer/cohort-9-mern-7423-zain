@@ -5,7 +5,7 @@
  
  
 import { useState, useEffect, useMemo, useRef } from "react" 
-import { CircleUserRound , StickyNotePlus, Search, Files, Pin, Archive, Trash2, Upload } from "lucide-react" 
+import { CircleUserRound , StickyNotePlus, Search, Files, Pin, Archive, Trash2, Upload, StickyNote } from "lucide-react" 
 import { NoteEditor } from "../components/NoteEditor" 
 import { NoteCard } from "../components/NoteCard" 
 import { Profile } from "../components/Profile" 
@@ -295,7 +295,7 @@ export const Dashboard = () => {
                     }} 
                 > 
                     <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-stone-300 bg-stone-50 px-4 py-3 sm:px-6 sm:py-4 lg:px-8"> 
-                        <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">Scribble Dashboard</h1> 
+                        <h1 className="text-lg font-semibold text-gray-900 sm:text-xl flex items-center gap-2"><StickyNote className="h-5 w-5"/>Scribble Dashboard</h1> 
                         <div className="ml-auto flex items-center gap-4"> 
                             <div className="relative w-48 sm:w-64"> 
                                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"/> 
@@ -425,4 +425,3 @@ export const Dashboard = () => {
        </> 
     ) 
 }
-

@@ -35,8 +35,6 @@ const mockUser = {
 
 let mockLogout
 let mockFetchUser
-let mockInitSocketListeners
-let mockCleanSocketListeners
 let mockChangeName
 let mockChangePassword
 let mockUpdateProfilePicture
@@ -47,8 +45,6 @@ beforeEach(() => {
 
     mockLogout = jest.fn().mockResolvedValue({})
     mockFetchUser = jest.fn().mockResolvedValue({})
-    mockInitSocketListeners = jest.fn()
-    mockCleanSocketListeners = jest.fn()
     mockChangeName = jest.fn().mockResolvedValue({})
     mockChangePassword = jest.fn().mockResolvedValue({})
     mockUpdateProfilePicture = jest.fn().mockResolvedValue({})
@@ -64,8 +60,6 @@ beforeEach(() => {
         selector({
             user: mockUser,
             fetchUser: mockFetchUser,
-            initSocketListeners: mockInitSocketListeners,
-            cleanSocketListeners: mockCleanSocketListeners,
             changeName: mockChangeName,
             changePassword: mockChangePassword,
             updateProfilePicture: mockUpdateProfilePicture,
@@ -115,15 +109,6 @@ describe('Profile rendering', () => {
 
         await waitFor(() => {
             expect(mockFetchUser).toHaveBeenCalledTimes(1)
-        })
-    })
-
-    test('initializes profile socket listeners after fetching the user', async () => {
-        render(<Profile onClose={jest.fn()} />)
-
-        await waitFor(() => {
-            expect(mockFetchUser).toHaveBeenCalledTimes(1)
-            expect(mockInitSocketListeners).toHaveBeenCalledTimes(1)
         })
     })
 })
@@ -343,8 +328,6 @@ describe('Profile interactions', () => {
                     profile_picture: 'https://example.com/profile.png'
                 },
                 fetchUser: mockFetchUser,
-                initSocketListeners: mockInitSocketListeners,
-                cleanSocketListeners: mockCleanSocketListeners,
                 changeName: mockChangeName,
                 changePassword: mockChangePassword,
                 updateProfilePicture: mockUpdateProfilePicture,

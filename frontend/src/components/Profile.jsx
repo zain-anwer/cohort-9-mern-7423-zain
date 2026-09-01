@@ -8,8 +8,6 @@ export const Profile = ({onClose}) => {
 
     const user = useProfileStore((state) => state.user)
     const fetchUser = useProfileStore((state) => state.fetchUser)
-    const initSocketListeners = useProfileStore((state) => state.initSocketListeners)
-    const cleanSocketListeners = useProfileStore((state) => state.cleanSocketListeners)
     const changeName = useProfileStore((state) => state.changeName)
     const changePassword = useProfileStore((state) => state.changePassword)
     const updateProfilePicture = useProfileStore((state) => state.updateProfilePicture)
@@ -28,7 +26,6 @@ export const Profile = ({onClose}) => {
         const initialize = async () => {
             try {
                 await fetchUser()
-                initSocketListeners()
             }
             catch(error) {
                 toast.error(error.response?.data?.message || "Something went wrong")
@@ -36,10 +33,6 @@ export const Profile = ({onClose}) => {
         }
 
         initialize()
-
-        return () => {
-            cleanSocketListeners()
-        }
     }, [])
 
     if (!user) {

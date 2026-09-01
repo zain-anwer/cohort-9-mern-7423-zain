@@ -119,6 +119,7 @@ jest.mock('../../src/components/Profile.jsx', () => ({
 jest.mock('lucide-react', () => ({
     CircleUserRound: () => <svg data-testid="icon-user-round" />,
     StickyNotePlus: () => <svg data-testid="icon-note-plus" />,
+    StickyNote: () => <svg data-testid="icon-sticky-note" />,
     Search: () => <svg data-testid="icon-search" />,
     Files: () => <svg data-testid="icon-files" />,
     Pin: () => <svg data-testid="icon-pin" />,

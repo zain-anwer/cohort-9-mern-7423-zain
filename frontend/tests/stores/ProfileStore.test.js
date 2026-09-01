@@ -204,3 +204,17 @@ describe("deleteProfilePicture", () => {
         expect(useProfileStore.getState().user.profile_picture).toBe("old.png")
     })
 })
+
+describe("clearUser", () => {
+    it("resets user to null", () => {
+        useProfileStore.setState({ user: { name: "Name", profile_picture: "old.png" } })
+        useProfileStore.getState().clearUser()
+        expect(useProfileStore.getState().user).toBeNull()
+    })
+
+    it("is a no-op when user is already null", () => {
+        useProfileStore.setState({ user: null })
+        useProfileStore.getState().clearUser()
+        expect(useProfileStore.getState().user).toBeNull()
+    })
+})

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { logout, signup, signin } from '../services/authService'
 import { connectSocket , disconnectSocket } from '../utils/socket'
+import useProfileStore from './profileStore'
 
 const token = localStorage.getItem('access_token')
 if (token)
@@ -60,6 +61,7 @@ const useAuthStore = create((set) => ({
         finally {
             localStorage.removeItem('access_token')
             disconnectSocket()
+            useProfileStore.getState().clearUser()
             set({isAuthenticated: false, isLoading: false, token: null})
         }
     }

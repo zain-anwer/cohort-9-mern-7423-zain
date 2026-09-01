@@ -68,6 +68,10 @@ const useProfileStore = create((set,get) => ({
     deleteProfilePicture: async () => {
         await profilePictureDeleteService()
         set({user: {...get().user,profile_picture:null}})
+    },
+
+    clearUser: () => {
+        set({user: null})
     }
 
 }))
