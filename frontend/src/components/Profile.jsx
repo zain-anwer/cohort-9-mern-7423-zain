@@ -240,11 +240,12 @@ export const Profile = ({onClose}) => {
                         </div>
 
                         <div className="mb-6">
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                            <label htmlFor="new-name" className="mb-2 block text-sm font-medium text-gray-700">
                                 New Name
                             </label>
 
                             <input
+                                id="new-name"
                                 type="text"
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
@@ -283,11 +284,12 @@ export const Profile = ({onClose}) => {
 
                         <div className="mb-6 flex flex-col gap-4">
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                <label htmlFor="current-password" className="mb-2 block text-sm font-medium text-gray-700">
                                     Current Password
                                 </label>
 
                                 <input
+                                    id="current-password"
                                     type="password"
                                     value={oldPassword}
                                     onChange={(e) => setOldPassword(e.target.value)}
@@ -296,11 +298,12 @@ export const Profile = ({onClose}) => {
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                <label htmlFor="new-password" className="mb-2 block text-sm font-medium text-gray-700">
                                     New Password
                                 </label>
 
                                 <input
+                                    id="new-password"
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}

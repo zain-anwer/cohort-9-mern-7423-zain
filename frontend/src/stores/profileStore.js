@@ -47,54 +47,27 @@ const useProfileStore = create((set,get) => ({
     },
 
     fetchUser: async () => {
-        try {
-            const res = await profileFetchService()
-            set({user:res.data.user})
-        }
-        catch(error) {
-            throw error
-        }
+        const res = await profileFetchService()
+        set({user:res.data.user})
     },
 
     changeName: async (new_name) => {
-        try {
-            await profileNameChangeService(new_name)
-            set({user: {...get().user,name:new_name}})
-        }
-        catch(error) {
-            throw error
-        }
+        await profileNameChangeService(new_name)
+        set({user: {...get().user,name:new_name}})
     },
 
     changePassword: async (old_password,new_password) => {
-        try {
-            await profilePasswordChangeService(old_password,new_password)
-            /* call logout and redirect to signin */
-            /* still thinking about whether to do it here or in the modal */
-        }
-        catch(error) {
-            throw error
-        }
+        await profilePasswordChangeService(old_password,new_password)
     },
 
     updateProfilePicture: async (image) => {
-        try {
-            const res = await profilePictureUpdateService(image)
-            set({user: {...get().user,profile_picture:res.data.profile_picture}})
-        }
-        catch(error) {
-            throw error
-        }
+        const res = await profilePictureUpdateService(image)
+        set({user: {...get().user,profile_picture:res.data.profile_picture}})
     },
 
     deleteProfilePicture: async () => {
-        try {
-            await profilePictureDeleteService()
-            set({user: {...get().user,profile_picture:null}})
-        }
-        catch(error) {
-            throw error
-        }
+        await profilePictureDeleteService()
+        set({user: {...get().user,profile_picture:null}})
     }
 
 }))

@@ -11,7 +11,6 @@ import { NoteCard } from "../components/NoteCard"
 import { Profile } from "../components/Profile" 
 import toast from "react-hot-toast" 
  
-import useAuthStore from "../stores/authStore" 
 import useNoteStore from "../stores/noteStore" 
 import useProfileStore from "../stores/profileStore" 
  
