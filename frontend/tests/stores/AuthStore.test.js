@@ -12,6 +12,15 @@ jest.mock('../../src/utils/socket', () => ({
     disconnectSocket: jest.fn()
 }))
 
+const mockClearUser = jest.fn()
+
+jest.mock('../../src/stores/profileStore', () => ({
+    __esModule: true,
+    default: {
+        getState: () => ({ clearUser: mockClearUser })
+    }
+}))
+
 const loadStore = () => {
     let useAuthStore
     jest.isolateModules(() => {
@@ -26,16 +35,14 @@ beforeEach(() => {
 })
 
 describe('initial state', () => {
-    test('reads token, isAuthenticated and user from localStorage on load', () => {
+    test('reads token and isAuthenticated from localStorage on load', () => {
         localStorage.setItem('access_token', 'abc123')
-        localStorage.setItem('user', JSON.stringify({ name: 'Jane Doe' }))
 
         const useAuthStore = loadStore()
         const state = useAuthStore.getState()
 
         expect(state.token).toBe('abc123')
         expect(state.isAuthenticated).toBe(true)
-        expect(state.user).toEqual({ name: 'Jane Doe' })
     })
 
     test('defaults to an unauthenticated state when localStorage is empty', () => {
@@ -44,18 +51,8 @@ describe('initial state', () => {
 
         expect(state.token).toBeNull()
         expect(state.isAuthenticated).toBe(false)
-        expect(state.user).toBeNull()
         expect(state.isLoading).toBe(false)
         expect(state.error).toBeNull()
-    })
-
-    test('falls back to a null user when the stored user JSON is corrupted', () => {
-        localStorage.setItem('access_token', 'abc123')
-        localStorage.setItem('user', '{not valid json')
-
-        const useAuthStore = loadStore()
-
-        expect(useAuthStore.getState().user).toBeNull()
     })
 
     test('connects the socket on load when a token already exists', () => {
@@ -74,7 +71,7 @@ describe('initial state', () => {
 })
 
 describe('signup', () => {
-    test('stores the token and user, connects the socket and marks the user authenticated', async () => {
+    test('stores the token, connects the socket and marks the user authenticated', async () => {
         const useAuthStore = loadStore()
         signupService.mockResolvedValueOnce({ data: { access_token: 'abc123', user: { name: 'Jane Doe' } } })
 
@@ -82,14 +79,12 @@ describe('signup', () => {
 
         expect(signupService).toHaveBeenCalledWith({ name: 'Jane Doe', email: 'jane@example.com', password: 'password123' })
         expect(localStorage.getItem('access_token')).toBe('abc123')
-        expect(JSON.parse(localStorage.getItem('user'))).toEqual({ name: 'Jane Doe' })
         expect(connectSocket).toHaveBeenCalledWith('abc123')
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(true)
         expect(state.token).toBe('abc123')
         expect(state.isLoading).toBe(false)
-        expect(state.user).toEqual({ name: 'Jane Doe' })
     })
 
     test('sets isLoading to true while the request is in flight', async () => {
@@ -129,7 +124,7 @@ describe('signup', () => {
 })
 
 describe('signin', () => {
-    test('stores the token and user, connects the socket and marks the user authenticated', async () => {
+    test('stores the token, connects the socket and marks the user authenticated', async () => {
         const useAuthStore = loadStore()
         signinService.mockResolvedValueOnce({ data: { access_token: 'abc123', user: { name: 'Jane Doe' } } })
 
@@ -137,14 +132,12 @@ describe('signin', () => {
 
         expect(signinService).toHaveBeenCalledWith({ email: 'jane@example.com', password: 'password123' })
         expect(localStorage.getItem('access_token')).toBe('abc123')
-        expect(JSON.parse(localStorage.getItem('user'))).toEqual({ name: 'Jane Doe' })
         expect(connectSocket).toHaveBeenCalledWith('abc123')
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(true)
         expect(state.token).toBe('abc123')
         expect(state.isLoading).toBe(false)
-        expect(state.user).toEqual({ name: 'Jane Doe' })
     })
 
     test('sets an error and stops loading when signin fails with a server message', async () => {
@@ -171,9 +164,8 @@ describe('signin', () => {
 })
 
 describe('logout', () => {
-    test('clears local storage, disconnects the socket and resets state on success', async () => {
+    test('clears local storage, disconnects the socket, clears profile state and resets state on success', async () => {
         localStorage.setItem('access_token', 'abc123')
-        localStorage.setItem('user', JSON.stringify({ name: 'Jane Doe' }))
         const useAuthStore = loadStore()
         logoutService.mockResolvedValueOnce({})
 
@@ -181,31 +173,28 @@ describe('logout', () => {
 
         expect(logoutService).toHaveBeenCalledTimes(1)
         expect(localStorage.getItem('access_token')).toBeNull()
-        expect(localStorage.getItem('user')).toBeNull()
         expect(disconnectSocket).toHaveBeenCalledTimes(1)
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(false)
-        expect(state.user).toBeNull()
         expect(state.token).toBeNull()
         expect(state.isLoading).toBe(false)
     })
 
-    test('still clears local storage, disconnects the socket and resets state when the api call fails', async () => {
+    test('still clears local storage, disconnects the socket, clears profile state and resets state when the api call fails', async () => {
         localStorage.setItem('access_token', 'abc123')
-        localStorage.setItem('user', JSON.stringify({ name: 'Jane Doe' }))
         const useAuthStore = loadStore()
         logoutService.mockRejectedValueOnce({ response: { data: { message: 'Logout endpoint down' } } })
 
         await expect(useAuthStore.getState().logout()).rejects.toBeTruthy()
 
         expect(localStorage.getItem('access_token')).toBeNull()
-        expect(localStorage.getItem('user')).toBeNull()
         expect(disconnectSocket).toHaveBeenCalledTimes(1)
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
 
         const state = useAuthStore.getState()
         expect(state.isAuthenticated).toBe(false)
-        expect(state.user).toBeNull()
         expect(state.token).toBeNull()
         expect(state.isLoading).toBe(false)
         expect(state.error).toBe('Logout endpoint down')
@@ -218,5 +207,6 @@ describe('logout', () => {
         await expect(useAuthStore.getState().logout()).rejects.toThrow('network down')
 
         expect(useAuthStore.getState().error).toBe('Logout Failed')
+        expect(mockClearUser).toHaveBeenCalledTimes(1)
     })
 })

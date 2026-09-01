@@ -26,6 +26,51 @@ describe('profile.service', () => {
         sandbox.restore()
     })
 
+    describe('profileFetchService', () => {
+        const user_id = 'u1'
+
+        it('returns the name, email and profile_picture on success', async () => {
+            sandbox.stub(userModel, 'findOne').resolves({
+                name: 'John',
+                email: 'john@example.com',
+                profile_picture: 'https://cdn.example.com/u1.png'
+            })
+
+            const result = await profileService.profileFetchService(user_id)
+
+            expect(userModel.findOne.calledWith({ _id: user_id })).to.be.true
+            expect(result).to.deep.equal({
+                name: 'John',
+                email: 'john@example.com',
+                profile_picture: 'https://cdn.example.com/u1.png'
+            })
+        })
+
+        it('throws a 404 error when the user is not found', async () => {
+            sandbox.stub(userModel, 'findOne').resolves(null)
+
+            try {
+                await profileService.profileFetchService(user_id)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('User Not Found')
+                expect(err.statusCode).to.equal(404)
+            }
+        })
+
+        it('throws a 500 error if the lookup fails', async () => {
+            sandbox.stub(userModel, 'findOne').rejects(new Error('db down'))
+
+            try {
+                await profileService.profileFetchService(user_id)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('Error Accessing User Record')
+                expect(err.statusCode).to.equal(500)
+            }
+        })
+    })
+
     describe('profileNameChangeService', () => {
         it('updates the name and emits update:name', async () => {
             const updatedUser = { _id: 'u1', name: 'New Name', updatedAt: new Date('2026-01-01') }
@@ -40,6 +85,38 @@ describe('profile.service', () => {
                 new_name: 'New Name',
                 updated_at: updatedUser.updatedAt
             })).to.be.true
+        })
+
+        it('throws a 400 error when new_name is not a string', async () => {
+            try {
+                await profileService.profileNameChangeService('u1', undefined)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('Invalid Name')
+                expect(err.statusCode).to.equal(400)
+            }
+        })
+
+        it('throws a 400 error when new_name is empty or whitespace', async () => {
+            try {
+                await profileService.profileNameChangeService('u1', '   ')
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('Invalid Name')
+                expect(err.statusCode).to.equal(400)
+            }
+        })
+
+        it('throws a 404 error if the user is not found', async () => {
+            sandbox.stub(userModel, 'findOneAndUpdate').resolves(null)
+
+            try {
+                await profileService.profileNameChangeService('u1', 'New Name')
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('User Not Found')
+                expect(err.statusCode).to.equal(404)
+            }
         })
 
         it('throws a 500 error if the update fails', async () => {
@@ -94,6 +171,18 @@ describe('profile.service', () => {
             } catch (err) {
                 expect(err.message).to.equal('Unable To Fetch User')
                 expect(err.statusCode).to.equal(500)
+            }
+        })
+
+        it('throws 404 if the user is not found', async () => {
+            sandbox.stub(userModel, 'findOne').resolves(null)
+
+            try {
+                await profileService.profilePasswordChangeService(user_id, 'oldpassword', 'newpassword')
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('User Not Found')
+                expect(err.statusCode).to.equal(404)
             }
         })
 
@@ -183,68 +272,12 @@ describe('profile.service', () => {
         })
     })
 
-    describe('profileDeleteService', () => {
-        const user_id = 'u1'
-
-        it('destroys the cloudinary image, deletes the user and disconnects sockets', async () => {
-            sandbox.stub(userModel, 'findOne').resolves({ public_id: 'pic123' })
-            const destroyStub = sandbox.stub(cloudinary.uploader, 'destroy').resolves({})
-            const deleteStub = sandbox.stub(userModel, 'deleteOne').resolves({})
-            const disconnectSockets = sinon.stub()
-            const inStub = sinon.stub().returns({ disconnectSockets })
-            const getIOStub = sinon.stub().returns({ in: inStub })
-            const mockedService = await loadServiceWithGetIO(getIOStub)
-
-            await mockedService.profileDeleteService(user_id)
-
-            expect(destroyStub.calledWith('pic123')).to.be.true
-            expect(deleteStub.calledOnce).to.be.true
-            expect(inStub.calledWith(`user_id:${user_id}`)).to.be.true
-            expect(disconnectSockets.calledWith(true)).to.be.true
-        })
-
-        it('skips cloudinary destroy when there is no public_id', async () => {
-            sandbox.stub(userModel, 'findOne').resolves({ public_id: null })
-            const destroyStub = sandbox.stub(cloudinary.uploader, 'destroy').resolves({})
-            sandbox.stub(userModel, 'deleteOne').resolves({})
-
-            await profileService.profileDeleteService(user_id)
-
-            expect(destroyStub.called).to.be.false
-        })
-
-        it('throws a 500 error if deletion fails', async () => {
-            sandbox.stub(userModel, 'findOne').resolves({ public_id: 'pic123' })
-            sandbox.stub(cloudinary.uploader, 'destroy').rejects(new Error('cloudinary down'))
-
-            try {
-                await profileService.profileDeleteService(user_id)
-                expect.fail('expected error to be thrown')
-            } catch (err) {
-                expect(err.message).to.equal('Error in deleting user account')
-                expect(err.statusCode).to.equal(500)
-            }
-        })
-
-        it('does not throw if the socket disconnect fails', async () => {
-            sandbox.stub(userModel, 'findOne').resolves({ public_id: null })
-            sandbox.stub(userModel, 'deleteOne').resolves({})
-            const getIOStub = sinon.stub().throws(new Error('io not ready'))
-            const mockedService = await loadServiceWithGetIO(getIOStub)
-            const loggerSpy = sandbox.stub(logger, 'error')
-
-            await mockedService.profileDeleteService(user_id)
-
-            expect(loggerSpy.calledOnce).to.be.true
-        })
-    })
-
     describe('profilePictureUpdateService', () => {
         const user_id = 'u1'
         const image = Buffer.from('fake-image-data')
         const mimetype = 'image/png'
 
-        it('uploads the new image, updates the user, emits update:picture and cleans up the old image', async () => {
+        it('uploads the new image, updates the user, emits update:picture, cleans up the old image and returns the secure_url', async () => {
             sandbox.stub(userModel, 'findOne').resolves({ public_id: 'old-pic' })
             sandbox.stub(cloudinary.uploader, 'upload').resolves({ secure_url: 'https://new-url', public_id: 'new-pic' })
             const updatedUser = { updatedAt: new Date('2026-01-01') }
@@ -252,7 +285,7 @@ describe('profile.service', () => {
             const emitSpy = sandbox.stub(profileEvent, 'emit')
             const destroyStub = sandbox.stub(cloudinary.uploader, 'destroy').resolves({})
 
-            await profileService.profilePictureUpdateService(user_id, image, mimetype)
+            const result = await profileService.profilePictureUpdateService(user_id, image, mimetype)
 
             expect(cloudinary.uploader.upload.calledOnce).to.be.true
             expect(emitSpy.calledWith('update:picture', {
@@ -261,6 +294,7 @@ describe('profile.service', () => {
                 updated_at: updatedUser.updatedAt
             })).to.be.true
             expect(destroyStub.calledWith('old-pic')).to.be.true
+            expect(result).to.equal('https://new-url')
         })
 
         it('skips cleanup when there was no previous picture', async () => {
@@ -286,6 +320,30 @@ describe('profile.service', () => {
             await profileService.profilePictureUpdateService(user_id, image, mimetype)
 
             expect(loggerSpy.calledOnce).to.be.true
+        })
+
+        it('throws a 404 error when the user is not found', async () => {
+            sandbox.stub(userModel, 'findOne').resolves(null)
+
+            try {
+                await profileService.profilePictureUpdateService(user_id, image, mimetype)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('User Not Found')
+                expect(err.statusCode).to.equal(404)
+            }
+        })
+
+        it('throws a 500 error if the user lookup fails', async () => {
+            sandbox.stub(userModel, 'findOne').rejects(new Error('db down'))
+
+            try {
+                await profileService.profilePictureUpdateService(user_id, image, mimetype)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('Error updating profile picture')
+                expect(err.statusCode).to.equal(500)
+            }
         })
 
         it('throws a 500 error if the upload fails', async () => {
@@ -330,6 +388,30 @@ describe('profile.service', () => {
 
             expect(destroyStub.called).to.be.false
             expect(emitSpy.called).to.be.false
+        })
+
+        it('throws a 404 error when the user is not found', async () => {
+            sandbox.stub(userModel, 'findOne').resolves(null)
+
+            try {
+                await profileService.profilePictureDeleteService(user_id)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('User Not Found')
+                expect(err.statusCode).to.equal(404)
+            }
+        })
+
+        it('throws a 500 error if the lookup fails', async () => {
+            sandbox.stub(userModel, 'findOne').rejects(new Error('db down'))
+
+            try {
+                await profileService.profilePictureDeleteService(user_id)
+                expect.fail('expected error to be thrown')
+            } catch (err) {
+                expect(err.message).to.equal('Error Deleting Profile Picture')
+                expect(err.statusCode).to.equal(500)
+            }
         })
 
         it('throws a 500 error if deletion fails', async () => {

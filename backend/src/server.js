@@ -5,6 +5,7 @@ import logger from './configs/logger.js'
 import connectDB from './configs/db.js'
 import { initializeSocket } from './socket/socket.js'
 import './socket/handlers/note.broadcast.handler.js'
+import './socket/handlers/profile.broadcast.handler.js'
 
 dotenv.config()
 

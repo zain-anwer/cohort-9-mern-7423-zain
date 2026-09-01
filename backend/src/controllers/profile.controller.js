@@ -1,5 +1,15 @@
 import profileService from "../services/profile.service.js"
 
+export const profileFetchController = async (req,res,next) => {
+    try {
+        const user = await profileService.profileFetchService(req.user.id)
+        res.status(200).json({'user':user}) 
+    }
+    catch(err) {
+        next(err)
+    }
+}
+
 export const profileNameChangeController = async (req,res,next) => {
     try {
         const {new_name} = req.body
@@ -22,16 +32,6 @@ export const profilePasswordChangeController = async (req,res,next) => {
         next(err)
     }
 }
-
-export const profileDeleteController = async (req,res,next) => {
-    try {
-        await profileService.profileDeleteService(req.user.id)
-        res.status(200).json({message: 'Account Deleted Successfully'})
-    }
-    catch(err) {
-        next(err)
-    }
-}
        
 export const profilePictureUpdateController = async (req,res,next) => {
     try {
@@ -42,8 +42,8 @@ export const profilePictureUpdateController = async (req,res,next) => {
             err.statusCode = 400
             throw err
         }
-        await profileService.profilePictureUpdateService(req.user.id,image,mimetype)
-        res.status(200).json({message: 'Profile Picture Updated Successfully'})
+        const secure_url = await profileService.profilePictureUpdateService(req.user.id,image,mimetype)
+        res.status(200).json({message: 'Profile Picture Updated Successfully','profile_picture':secure_url})
     }
     catch(err) {
         next(err)

@@ -2,13 +2,18 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { Dashboard } from '../../src/pages/Dashboard.jsx'
-import useAuthStore from '../../src/stores/authStore'
+import useProfileStore from '../../src/stores/profileStore'
 import useNoteStore from '../../src/stores/noteStore'
 import toast from 'react-hot-toast'
 
 const originalCreateElement = document.createElement.bind(document)
 
 jest.mock('../../src/stores/authStore', () => ({
+    __esModule: true,
+    default: jest.fn()
+}))
+
+jest.mock('../../src/stores/profileStore', () => ({
     __esModule: true,
     default: jest.fn()
 }))
@@ -104,10 +109,8 @@ jest.mock('../../src/components/NoteCard.jsx', () => ({
 }))
 
 jest.mock('../../src/components/Profile.jsx', () => ({
-    Profile: ({ name, email, onClose }) => (
+    Profile: ({ onClose }) => (
         <div data-testid="profile-modal">
-            <span>{name}</span>
-            <span>{email}</span>
             <button onClick={onClose}>close-profile</button>
         </div>
     )
@@ -116,6 +119,7 @@ jest.mock('../../src/components/Profile.jsx', () => ({
 jest.mock('lucide-react', () => ({
     CircleUserRound: () => <svg data-testid="icon-user-round" />,
     StickyNotePlus: () => <svg data-testid="icon-note-plus" />,
+    StickyNote: () => <svg data-testid="icon-sticky-note" />,
     Search: () => <svg data-testid="icon-search" />,
     Files: () => <svg data-testid="icon-files" />,
     Pin: () => <svg data-testid="icon-pin" />,
@@ -144,6 +148,10 @@ let mockImportNote
 let mockInitSocketListeners
 let mockCleanSocketListeners
 
+let mockFetchUser
+let mockInitProfileSocketListeners
+let mockCleanProfileSocketListeners
+
 const setNoteStoreState = (notes) => {
     useNoteStore.mockImplementation((selector) =>
         selector({
@@ -158,6 +166,23 @@ const setNoteStoreState = (notes) => {
             cleanSocketListeners: mockCleanSocketListeners
         })
     )
+}
+
+const setProfileStoreState = (user) => {
+    useProfileStore.mockImplementation((selector) =>
+        selector({
+            user,
+            fetchUser: mockFetchUser,
+            initSocketListeners: mockInitProfileSocketListeners,
+            cleanSocketListeners: mockCleanProfileSocketListeners
+        })
+    )
+}
+
+const defaultUser = {
+    name: 'Jane Doe',
+    email: 'jane@example.com',
+    profile_picture: null
 }
 
 const defaultNotes = [
@@ -211,15 +236,11 @@ beforeEach(() => {
     mockInitSocketListeners = jest.fn()
     mockCleanSocketListeners = jest.fn()
 
-    useAuthStore.mockImplementation((selector) =>
-        selector({
-            user: {
-                name: 'Jane Doe',
-                email: 'jane@example.com'
-            }
-        })
-    )
+    mockFetchUser = jest.fn().mockResolvedValue(defaultUser)
+    mockInitProfileSocketListeners = jest.fn()
+    mockCleanProfileSocketListeners = jest.fn()
 
+    setProfileStoreState(defaultUser)
     setNoteStoreState(defaultNotes)
 })
 
@@ -230,7 +251,7 @@ describe('Dashboard lifecycle', () => {
         expect(screen.getByText('Scribble Dashboard')).toBeInTheDocument()
     })
 
-    test('loads notes and initializes socket listeners on mount', async () => {
+    test('loads notes and initializes note socket listeners on mount', async () => {
         render(<Dashboard />)
 
         await waitFor(() => {
@@ -240,12 +261,23 @@ describe('Dashboard lifecycle', () => {
         expect(mockInitSocketListeners).toHaveBeenCalledTimes(1)
     })
 
-    test('cleans socket listeners on unmount', () => {
+    test('loads the user profile and initializes profile socket listeners on mount', async () => {
+        render(<Dashboard />)
+
+        await waitFor(() => {
+            expect(mockFetchUser).toHaveBeenCalledTimes(1)
+        })
+
+        expect(mockInitProfileSocketListeners).toHaveBeenCalledTimes(1)
+    })
+
+    test('cleans up note and profile socket listeners on unmount', () => {
         const { unmount } = render(<Dashboard />)
 
         unmount()
 
         expect(mockCleanSocketListeners).toHaveBeenCalledTimes(1)
+        expect(mockCleanProfileSocketListeners).toHaveBeenCalledTimes(1)
     })
 
     test('shows an error toast when loading notes fails', async () => {
@@ -271,6 +303,32 @@ describe('Dashboard lifecycle', () => {
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith('failed to load notes')
+        })
+    })
+
+    test('shows an error toast when loading the profile fails', async () => {
+        mockFetchUser.mockRejectedValueOnce({
+            response: {
+                data: {
+                    message: 'profile load failed'
+                }
+            }
+        })
+
+        render(<Dashboard />)
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith('profile load failed')
+        })
+    })
+
+    test('shows the default error when loading the profile fails without a response message', async () => {
+        mockFetchUser.mockRejectedValueOnce(new Error('profile load failed'))
+
+        render(<Dashboard />)
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith('Something went wrong')
         })
     })
 })
@@ -1353,31 +1411,36 @@ describe('Dashboard editor actions by view', () => {
 })
 
 describe('Dashboard profile', () => {
-    test('opens the profile modal with the authenticated user', () => {
+    test('shows the user picture and name in the profile trigger', () => {
         render(<Dashboard />)
 
-        fireEvent.click(
-            screen.getByRole('button', {
-                name: 'profile'
-            })
-        )
-
-        const profile = screen.getByTestId('profile-modal')
-
-        expect(within(profile).getByText('Jane Doe')).toBeInTheDocument()
         expect(
-            within(profile).getByText('jane@example.com')
+            screen.getByRole('button', { name: /profile/i })
         ).toBeInTheDocument()
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    })
+
+    test('shows a fallback icon when no user has loaded yet', () => {
+        setProfileStoreState(null)
+
+        render(<Dashboard />)
+
+        expect(screen.getByTestId('icon-user-round')).toBeInTheDocument()
+        expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument()
+    })
+
+    test('opens the profile modal', () => {
+        render(<Dashboard />)
+
+        fireEvent.click(screen.getByRole('button', { name: /profile/i }))
+
+        expect(screen.getByTestId('profile-modal')).toBeInTheDocument()
     })
 
     test('closes the profile modal', () => {
         render(<Dashboard />)
 
-        fireEvent.click(
-            screen.getByRole('button', {
-                name: 'profile'
-            })
-        )
+        fireEvent.click(screen.getByRole('button', { name: /profile/i }))
 
         fireEvent.click(
             within(screen.getByTestId('profile-modal')).getByText('close-profile')
